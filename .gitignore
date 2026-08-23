@@ -4,7 +4,14 @@ node_modules/
 # Environment
 .env
 .env.local
-.env.*.local
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
 
 # Local Supabase CLI state
 .supabase/

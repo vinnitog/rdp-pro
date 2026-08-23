@@ -1,141 +1,247 @@
 # RDP Pro
 
-PWA de Registro de Pensamentos para TCC, versao profissional B2B.
+PWA B2B para Registro de Pensamentos em Terapia Cognitivo-Comportamental (TCC). O produto conecta o exercício do paciente ao acompanhamento do profissional, com funcionamento offline, sincronização autenticada e controles de privacidade.
+
+> Projeto de portfólio em evolução. Não substitui prontuário clínico, orientação profissional ou serviço de emergência.
+
+## Visão geral
+
+O RDP Pro organiza o acompanhamento entre sessões em duas experiências:
+
+- **Paciente**: registra situação, pensamento automático, sentimento, ansiedade, reação e pensamento alternativo; consulta histórico e insights; exporta ou exclui seus dados.
+- **Profissional**: cria convites de uso único, acompanha pacientes vinculados, consulta registros e configura o recebimento de relatórios.
+
+O frontend é uma PWA em HTML, CSS e JavaScript vanilla, sem framework, bundler ou build step. Supabase fornece autenticação, PostgreSQL, RLS, RPCs e Edge Functions. O app mantém uma cópia local por paciente para uso offline e sincroniza quando há sessão e conexão.
+
+## Funcionalidades
+
+### Experiência do paciente
+
+- cadastro e login vinculados a convite profissional de uso único;
+- formulário estruturado de Registro de Pensamentos;
+- persistência offline e sincronização com isolamento por usuário;
+- histórico editável, indicadores do ciclo e exportação JSON;
+- relatório enviado somente após ação do paciente;
+- exclusão individual, limpeza do ciclo e exclusão da conta;
+- tema claro/escuro, PWA instalável e interface mobile-first.
+
+### Painel profissional
+
+- autenticação e perfil profissional;
+- criação, renovação e invalidação de convites;
+- busca e acompanhamento de pacientes vinculados;
+- leitura dos registros por paciente;
+- configuração de e-mail para relatórios e duração do ciclo;
+- layout responsivo para consultório e dispositivos menores.
+
+### Segurança e privacidade
+
+- RLS vinculada ao `auth.uid()` para pacientes e profissionais;
+- convite removido da URL e da sessão após o vínculo;
+- CORS por allowlist e autenticação Bearer nas Edge Functions;
+- validação de schema, tipos, UUIDs, tamanhos e limites de payload;
+- escape de conteúdo em HTML, assunto de e-mail e interfaces dinâmicas;
+- respostas de erro sem stack, destinatário ou detalhes de provedores;
+- exportação e exclusão autenticadas, sem usar o convite como credencial;
+- suíte regressiva para XSS, RLS/RPC, auth, segredos e direitos do titular.
+
+Os artefatos técnicos da adequação estão em [`.lgpd/`](.lgpd/). A política de privacidade permanece como minuta para revisão jurídica; o app exibe apenas uma explicação funcional resumida.
 
 ## Arquitetura
 
+```text
+Paciente / Profissional
+        │
+        ├── PWA vanilla ── localStorage por paciente
+        │       │
+        │       └── Service Worker (network-first para app shell)
+        │
+        └── Supabase
+                ├── Auth
+                ├── PostgreSQL + RLS
+                ├── RPCs de convite, perfil e exportação
+                └── Edge Functions
+                        ├── enviar-relatorio ── Resend
+                        └── excluir-conta ── Auth Admin
 ```
+
+Fluxo principal:
+
+1. O profissional cria um convite.
+2. O paciente abre `paciente.html?convite=<token>` e vincula sua conta.
+3. O convite é invalidado e deixa de funcionar como credencial.
+4. Registros são salvos localmente e sincronizados sob RLS.
+5. O paciente pode enviar um relatório, exportar ou excluir seus dados.
+
+## Stack
+
+| Camada | Tecnologia |
+| --- | --- |
+| Interface | HTML5, CSS3, JavaScript vanilla |
+| Tipografia | Lora + DM Sans |
+| Backend | Supabase PostgreSQL, Auth, RLS, RPCs e Edge Functions |
+| E-mail | Resend via Edge Function autenticada |
+| Gráficos | Chart.js |
+| Exportação | JSON e jsPDF |
+| PWA | Web App Manifest + Service Worker |
+| Testes | Node.js, `node:assert` e `node:vm` |
+
+## Estrutura do projeto
+
+```text
 rdp-pro/
-|-- paciente.html           # App do paciente (PWA)
-|-- psicologo.html          # Painel do psicologo
-|-- index.html              # Compatibilidade com links antigos
-|-- therapist.html          # Compatibilidade com links antigos
-|-- manifest.json
-|-- sw.js                   # Service Worker
-|-- css/
-|-- js/
-|-- icons/
-`-- supabase/
-    |-- migrations/
-    |   |-- 001_initial_schema.sql
-    |   |-- 002_fix_rls_security.sql
-    |   |-- 003_patient_auth_ptbr_routes.sql
-    |   `-- 006_invite_single_use.sql
-    |-- templates/
-    |   |-- confirm-signup.html
-    |   `-- confirm-signup-subject.txt
-    `-- functions/
-        |-- enviar-relatorio/
-        `-- send-report/    # Compatibilidade com endpoint antigo
+├── paciente.html                    # PWA do paciente
+├── psicologo.html                   # painel do profissional
+├── index.html                       # redirecionamento legado
+├── therapist.html                   # alias legado do painel
+├── css/
+│   ├── app.css
+│   └── therapist.css
+├── js/
+│   ├── config.js
+│   ├── db.js
+│   ├── app.js
+│   └── therapist.js
+├── supabase/
+│   ├── migrations/                  # migrations 001–007
+│   ├── templates/                   # confirmação de cadastro
+│   └── functions/
+│       ├── _shared/
+│       ├── enviar-relatorio/
+│       ├── excluir-conta/
+│       └── send-report/             # alias legado
+├── tests/                            # regressão funcional e de segurança
+├── .lgpd/                            # auditoria e governança técnica
+├── .agents/skills/                   # skills incorporadas ao projeto
+└── docs/pricing-strategy.md          # hipótese de monetização
 ```
 
-## Setup
+## Como executar
 
-### Banco de dados
+### Pré-requisitos
 
-1. Acesse o Supabase Dashboard.
-2. Abra o projeto de producao.
-3. No SQL Editor, execute as migrations em ordem: `001`, `002`, `003`.
-4. Se o paciente receber erro `PGRST202` em `claim_patient_invite`, execute tambem a `004_repair_patient_auth_rpc.sql` no SQL Editor para recriar as RPCs e recarregar o schema do Supabase.
-5. Se, depois disso, aparecer `column reference "invite_token" is ambiguous`, execute a `005_fix_claim_patient_invite_ambiguity.sql`.
-6. Execute a `006_invite_single_use.sql` para invalidar convites apos o primeiro vinculo de conta.
-7. Repita no projeto de teste, se houver.
+- Node.js para a suíte de testes;
+- projeto Supabase para autenticação e sincronização;
+- Supabase CLI para publicar Edge Functions;
+- conta Resend para envio de relatórios.
 
-### Edge Function
+O frontend não exige instalação de dependências nem compilação. Sirva a raiz com um servidor estático de sua preferência para trabalhar com as rotas de autenticação.
 
-Configure o secret:
+### 1. Configuração do frontend
 
-```bash
+Preencha em `js/config.js`:
+
+```js
+supabase: {
+  url: "https://SEU_PROJECT_REF.supabase.co",
+  anonKey: "SUA_CHAVE_ANON_PUBLICA"
+}
+```
+
+A chave `anon` é pública por arquitetura. Ela deve permanecer limitada ao papel `anon`; nunca coloque `service_role`, chaves Resend ou outros segredos no frontend. A proteção dos dados depende de RLS corretamente aplicada.
+
+### 2. Banco de dados
+
+No SQL Editor do Supabase, aplique em ordem todas as migrations de `001` a `007`:
+
+```text
+supabase/migrations/001_initial_schema.sql
+supabase/migrations/002_fix_rls_security.sql
+supabase/migrations/003_patient_auth_ptbr_routes.sql
+supabase/migrations/004_repair_patient_auth_rpc.sql
+supabase/migrations/005_fix_claim_patient_invite_ambiguity.sql
+supabase/migrations/006_invite_single_use.sql
+supabase/migrations/007_patient_data_rights.sql
+```
+
+A migration 007 é obrigatória para DELETE autenticado e exportação dos dados do paciente.
+
+### 3. Edge Functions
+
+Configure os secrets no ambiente Supabase:
+
+```text
 RESEND_API_KEY
+REPORT_FROM_EMAIL
+ALLOWED_ORIGINS
 ```
 
-Deploy do endpoint em pt-BR:
+- `REPORT_FROM_EMAIL`: remetente verificado no Resend.
+- `ALLOWED_ORIGINS`: origens exatas permitidas, separadas conforme a configuração da função.
+
+Publique os endpoints:
 
 ```bash
-supabase functions deploy enviar-relatorio --project-ref ofojfewdeamfackofjgt
+supabase functions deploy enviar-relatorio --project-ref SEU_PROJECT_REF
+supabase functions deploy excluir-conta --project-ref SEU_PROJECT_REF
 ```
 
-O endpoint antigo `send-report` foi mantido apenas como compatibilidade.
+`send-report` é mantido apenas para compatibilidade e delega à mesma implementação segura.
 
-### Auth URLs
+### 4. URLs de autenticação
 
-No Supabase Auth, configure:
+Exemplo para GitHub Pages:
 
 ```text
 Site URL: https://SEU_USUARIO.github.io/RDP-Pro/paciente.html
+
 Redirect URLs:
 https://SEU_USUARIO.github.io/RDP-Pro/paciente.html
 https://SEU_USUARIO.github.io/RDP-Pro/psicologo.html
 https://SEU_USUARIO.github.io/RDP-Pro/**
 ```
 
-O app tambem envia `emailRedirectTo` no cadastro para reforcar as rotas pt-BR.
-
-### Auth Email Template
-
-No Supabase Dashboard, acesse Authentication > Email Templates > Confirm signup.
-
-Use:
+Em `Authentication > Email Templates > Confirm signup`, utilize:
 
 ```text
 Subject: supabase/templates/confirm-signup-subject.txt
 Body: supabase/templates/confirm-signup.html
 ```
 
-O template usa `{{ .ConfirmationURL }}` e `{{ .Email }}`, variaveis oficiais do Supabase Auth.
-
-### GitHub Pages
-
-A rota principal do paciente e:
-
-```text
-https://SEU_USUARIO.github.io/rdp-pro/paciente.html
-```
-
-A rota principal do profissional e:
-
-```text
-https://SEU_USUARIO.github.io/rdp-pro/psicologo.html
-```
-
-## Fluxo de uso
-
-### Psicologo
-
-1. Acessa `psicologo.html` e cria conta.
-2. Clica em **+ Novo convite**.
-3. Envia o link com `?convite=` para o paciente.
-4. Usa **Gerar novo link** quando precisar invalidar o link anterior e criar outro.
-5. Em **Configuracoes**, define e-mail de recebimento e limite de dias.
-
-### Paciente
-
-1. Abre o link de convite no celular.
-2. Cria conta ou entra com e-mail e senha para vincular o convite.
-3. Faz o onboarding, se ainda faltar nome.
-4. Usa o app normalmente.
-5. Quando o ciclo se completa, toca em **Enviar Relatorio**.
-6. Limpa o historico e comeca novo ciclo.
-
-## Rotas e Endpoints
-
-- `paciente.html?convite=<token>`: convite principal do paciente.
-- `psicologo.html`: painel do profissional.
-- `functions/v1/enviar-relatorio`: Edge Function principal.
-- `index.html`, `therapist.html`, `?token=` e `send-report`: mantidos para compatibilidade.
-
-## Service Worker
-
-A cada deploy com mudancas em HTML/CSS/JS, incremente `CACHE_NAME` em `sw.js`.
-
 ## Testes
 
-```bash
-npm test
+No Windows, use preferencialmente:
+
+```powershell
+.\test.cmd
 ```
 
-No Windows PowerShell, se `npm` for bloqueado pela policy local, use:
+Alternativa:
 
-```bash
+```powershell
 npm.cmd test
 ```
+
+A suíte cobre:
+
+- callbacks PKCE, limpeza de URL e logout offline;
+- exclusão remota/local e isolamento entre pacientes;
+- migration 007, RLS, RPC de exportação e cascata;
+- CORS, autenticação e validação das Edge Functions;
+- XSS, UUIDs, aliases legados e HTML dinâmico;
+- consistência visual, versões, cache e varredura de segredos;
+- políticas de branch e arquivos de governança.
+
+## Decisões de produto
+
+- **Offline-first**: o dispositivo continua útil sem conexão; a nuvem permite recuperação e acesso autenticado.
+- **Convite não é credencial**: ele serve apenas para estabelecer o vínculo inicial.
+- **Privacidade não é feature premium**: exportação, exclusão e controles de segurança não devem ser limitados por plano.
+- **Precificação ainda é hipótese**: a recomendação e os experimentos estão em [`docs/pricing-strategy.md`](docs/pricing-strategy.md); nenhuma cobrança está implementada.
+- **Compatibilidade gradual**: rotas e endpoint antigos continuam como aliases enquanto os novos nomes são adotados.
+
+## Limitações conhecidas
+
+- a exclusão do perfil no banco e do usuário Auth ocorre em duas etapas e requer reconciliação operacional em caso de falha parcial;
+- contratos, regiões, backups e retenções de operadores precisam de validação antes de produção;
+- a política de privacidade ainda requer identificação do controlador, encarregado e revisão jurídica;
+- pagamentos, equipes multi-profissionais e papéis administrativos não estão implementados;
+- testes com Supabase/Resend reais, atualização offline do PWA e entrega do e-mail permanecem cenários de staging.
+
+## Próximos passos
+
+1. Validar migrations e Edge Functions em ambiente de staging.
+2. Concluir revisão jurídica e governança LGPD operacional.
+3. Instrumentar métricas mínimas sem conteúdo terapêutico.
+4. Executar o piloto de precificação com profissionais.
+5. Implementar observabilidade, reconciliação de exclusão e testes E2E.

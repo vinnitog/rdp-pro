@@ -87,4 +87,28 @@ assert.match(
   "006: claim_patient_invite should mark the invite as used"
 );
 
+const rightsSql = readMigration("supabase/migrations/007_patient_data_rights.sql");
+const initialSql = readMigration("supabase/migrations/001_initial_schema.sql");
+const exportBody = getFunctionBody(rightsSql, "export_current_patient_data");
+
+assert.match(
+  rightsSql,
+  /create policy "patient_delete_own_records"[\s\S]*?for delete[\s\S]*?p\.id\s*=\s*records\.patient_id[\s\S]*?p\.user_id\s*=\s*auth\.uid\(\)[\s\S]*?p\.active\s*=\s*true/i,
+  "007: authenticated patients should delete only records belonging to their active profile"
+);
+assert.match(rightsSql, /export_current_patient_data\(\)[\s\S]*?security definer[\s\S]*?set search_path\s*=\s*public/i);
+assert.match(exportBody, /auth\.uid\(\)\s+is\s+null/i, "007: anonymous exports should be rejected");
+assert.match(exportBody, /where\s+p\.user_id\s*=\s*auth\.uid\(\)/i, "007: export should select the authenticated patient");
+assert.match(exportBody, /where\s+r\.patient_id\s*=\s*p\.id/i, "007: export should select only that patient's records");
+assert.match(exportBody, /coalesce\([\s\S]*?'\[\]'::jsonb\)/i, "007: an empty record list should be []");
+assert.doesNotMatch(exportBody, /invite_token|'settings'|therapist_(?:id|name)|report_email/i, "007: export should omit credentials and professional data");
+assert.match(rightsSql, /revoke all on function public\.export_current_patient_data\(\) from (?:public|anon)/i);
+assert.match(rightsSql, /grant execute on function public\.export_current_patient_data\(\) to authenticated/i);
+assert.doesNotMatch(rightsSql, /grant execute on function public\.export_current_patient_data\(\) to (?:anon|public)/i);
+assert.match(
+  initialSql,
+  /patient_id\s+uuid\s+not null references public\.patients\(id\) on delete cascade/i,
+  "001: deleting a patient should cascade to their records"
+);
+
 console.log("SQL RPC regression tests passed");

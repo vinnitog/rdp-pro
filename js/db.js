@@ -56,6 +56,19 @@ const DB = (() => {
     return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
   }
 
+  function withoutInviteToken(data) {
+    if (!data) return data;
+    const { invite_token: _inviteToken, ...safeSession } = data;
+    return safeSession;
+  }
+
+  function clearLocalAuthToken() {
+    try {
+      const projectRef = new URL(window.RDP_CONFIG.supabase.url).hostname.split(".")[0];
+      if (projectRef) localStorage.removeItem(`sb-${projectRef}-auth-token`);
+    } catch {}
+  }
+
   // ─── SESSION DO PACIENTE ────────────────────────────────────────────────────
   const Patient = {
     save(data) { LS.set("rdp_patient_session", data); },
@@ -94,15 +107,18 @@ const DB = (() => {
     },
 
     async signOut() {
-      await client().auth.signOut();
-      Patient.clear();
-      Patient.clearPendingInvite();
+      const patientId = Patient.get()?.patient_id;
+      try {
+        await client().auth.signOut({ scope: "local" });
+      } finally {
+        clearLocalAuthToken();
+        Records.clearLocalFor(patientId);
+        Patient.clear();
+        Patient.clearPendingInvite();
+      }
     },
 
     async resolveToken(token) {
-      const cached = Patient.get();
-      if (cached?.invite_token === token) return cached;
-
       const { data, error } = await client()
         .rpc("get_patient_by_token", { p_token: token })
         .single();
@@ -110,7 +126,7 @@ const DB = (() => {
       if (error) throwSupabaseError(error, "Token inválido ou expirado");
       if (!data) throw new Error("Token inválido ou expirado");
 
-      const session = { ...data, invite_token: token };
+      const session = withoutInviteToken(data);
       Patient.save(session);
       return session;
     },
@@ -123,7 +139,7 @@ const DB = (() => {
       if (error) throwSupabaseError(error, "Convite inválido");
       if (!data) throw new Error("Convite inválido");
 
-      const session = { ...data, invite_token: token };
+      const session = withoutInviteToken(data);
       Patient.save(session);
       Patient.clearPendingInvite();
       return session;
@@ -139,8 +155,9 @@ const DB = (() => {
 
       if (error || !data) return null;
 
-      Patient.save(data);
-      return data;
+      const patient = withoutInviteToken(data);
+      Patient.save(patient);
+      return patient;
     },
 
     async updateName(name) {
@@ -150,6 +167,38 @@ const DB = (() => {
       const { error } = await client()
         .rpc("update_current_patient_name", { p_full_name: name });
       if (error) throw error;
+    },
+
+    async exportData() {
+      const { data, error } = await client().rpc("export_current_patient_data");
+      if (error) throwSupabaseError(error, "Não foi possível exportar seus dados");
+      return data;
+    },
+
+    async deleteAccount() {
+      const patientId = Patient.get()?.patient_id;
+      const authSession = await Patient.getAuthSession();
+      if (!authSession?.access_token) throw new Error("Sessão expirada. Entre novamente.");
+
+      const response = await fetch(
+        `${window.RDP_CONFIG.supabase.url}/functions/v1/excluir-conta`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${authSession.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ confirmation: true }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Não foi possível excluir a conta. Tente novamente.");
+
+      await client().auth.signOut({ scope: "local" }).catch(() => {});
+      clearLocalAuthToken();
+      Records.clearLocalFor(patientId);
+      Patient.clear();
+      Patient.clearPendingInvite();
     },
   };
 
@@ -187,22 +236,39 @@ const DB = (() => {
       Records.syncPending().catch(console.warn);
     },
 
-    delete(id) {
-      const all = Records.getAll().filter((r) => r.id !== id);
-      Records.save(all);
+    async delete(id) {
+      const session = Patient.get();
+      if (!session) throw new Error("Sessão não encontrada");
+
+      const localRecord = Records.getAll().find((record) => record.id === id);
+      if (!localRecord) return;
+
+      const { data, error } = await client()
+        .from("records")
+        .delete()
+        .eq("id", id)
+        .eq("patient_id", session.patient_id)
+        .select("id");
+
+      if (error) throwSupabaseError(error, "Não foi possível apagar o registro");
+      if (localRecord.synced && !data?.some((record) => record.id === id)) {
+        throw new Error("Não foi possível confirmar a exclusão do registro");
+      }
+      Records.save(Records.getAll().filter((record) => record.id !== id));
     },
 
     countDays() {
       return new Set(Records.getAll().map((r) => r.date_key)).size;
     },
 
-    async syncPending() {
+    async syncPending({ throwOnError = false } = {}) {
       const session = Patient.get();
       if (!session) return;
 
       const all = Records.getAll();
       const pending = all.filter((r) => !r.synced);
       if (!pending.length) return;
+      let syncError = null;
 
       for (const r of pending) {
         const { error } = await client()
@@ -225,13 +291,41 @@ const DB = (() => {
         if (!error) {
           const idx = all.findIndex((x) => x.id === r.id);
           if (idx !== -1) all[idx].synced = true;
+        } else if (!syncError) {
+          syncError = error;
         }
       }
       Records.save(all);
+      if (syncError && throwOnError) {
+        throwSupabaseError(syncError, "Não foi possível sincronizar os registros");
+      }
     },
 
-    clearAll() {
+    async clearAll() {
+      const session = Patient.get();
+      if (!session) throw new Error("Sessão não encontrada");
+
+      const syncedIds = Records.getAll()
+        .filter((record) => record.synced)
+        .map((record) => record.id);
+
+      const { data, error } = await client()
+        .from("records")
+        .delete()
+        .eq("patient_id", session.patient_id)
+        .select("id");
+
+      if (error) throwSupabaseError(error, "Não foi possível apagar os registros");
+      const deletedIds = new Set((data || []).map((record) => record.id));
+      if (syncedIds.some((id) => !deletedIds.has(id))) {
+        throw new Error("Não foi possível confirmar a exclusão de todos os registros");
+      }
       Records.save([]);
+    },
+
+    clearLocalFor(patientId) {
+      if (patientId) LS.rm(`rdp_records_${patientId}`);
+      LS.rm("rdp_records_anon");
     },
 
     async fetchAndMerge() {
@@ -442,22 +536,18 @@ const DB = (() => {
   // ─── ENVIO DE RELATÓRIO ─────────────────────────────────────────────────────
   const Report = {
     async send(records) {
-      const session = Patient.get();
-      if (!session) throw new Error("Sessão não encontrada");
       const authSession = await Patient.getAuthSession();
+      if (!authSession?.access_token) throw new Error("Sessão expirada. Entre novamente.");
 
       const request = {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${authSession?.access_token || window.RDP_CONFIG.supabase.anonKey}`,
+            "Authorization": `Bearer ${authSession.access_token}`,
           },
           body: JSON.stringify({
-            patient_id:        session.patient_id,
-            invite_token:      session.invite_token,
             records,
-            patient_name:      session.patient_name || "Paciente",
-            // Offset do fuso horário do cliente em minutos (ex: -180 para BRT)
+            // Offset do fuso horário do cliente em minutos (ex: 180 para BRT)
             // A Edge Function usa isso para formatar o timestamp corretamente
             timezone_offset:   new Date().getTimezoneOffset(),
           }),
