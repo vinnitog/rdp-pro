@@ -11,7 +11,7 @@
 <title>RDP Pro — Registro de Pensamentos</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
@@ -30,20 +30,25 @@
       </div>
 
       <div class="patient-auth-grid">
-        <div class="patient-auth-block">
+        <form class="patient-auth-block" onsubmit="event.preventDefault();App.submitPatientLogin()">
           <h3>Entrar</h3>
+          <label class="auth-field-label" for="patient-login-email">E-mail</label>
           <input class="ob-input" id="patient-login-email" type="email" placeholder="E-mail" autocomplete="email">
+          <label class="auth-field-label" for="patient-login-password">Senha</label>
           <input class="ob-input" id="patient-login-password" type="password" placeholder="Senha" autocomplete="current-password">
-          <button class="btn-save" id="btn-patient-login" onclick="App.submitPatientLogin()">Entrar</button>
-        </div>
+          <button type="submit" class="btn-save" id="btn-patient-login">Entrar</button>
+        </form>
 
-        <div class="patient-auth-block">
+        <form class="patient-auth-block" onsubmit="event.preventDefault();App.submitPatientSignup()">
           <h3>Criar conta</h3>
+          <label class="auth-field-label" for="patient-signup-name">Nome completo</label>
           <input class="ob-input" id="patient-signup-name" type="text" placeholder="Nome completo" autocomplete="name">
+          <label class="auth-field-label" for="patient-signup-email">E-mail</label>
           <input class="ob-input" id="patient-signup-email" type="email" placeholder="E-mail" autocomplete="email">
+          <label class="auth-field-label" for="patient-signup-password">Senha</label>
           <input class="ob-input" id="patient-signup-password" type="password" placeholder="Senha (min. 6 caracteres)" autocomplete="new-password">
-          <button class="btn-save" id="btn-patient-signup" onclick="App.submitPatientSignup()">Criar acesso</button>
-        </div>
+          <button type="submit" class="btn-save" id="btn-patient-signup">Criar acesso</button>
+        </form>
       </div>
 
       <div class="patient-auth-message" id="patient-auth-message"></div>
@@ -54,7 +59,7 @@
 <!-- ─── ONBOARDING ────────────────────────────────────────────────────────── -->
 <div class="screen" id="screen-onboarding">
   <div class="screen-center">
-    <div class="screen-card">
+    <form class="screen-card" onsubmit="event.preventDefault();App.submitOnboarding()">
       <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 7 2.65A4 4 0 0 0 19 17v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-7-2.65A3.99 3.99 0 0 0 9 3Z"/><path d="M12 4v16"/></svg>
       <h2>Bem-vindo(a) ao RDP Pro</h2>
       <p>Seu psicólogo(a) te convidou para usar este app de Registro de Pensamentos (TCC).</p>
@@ -64,7 +69,7 @@
         <span id="ob-clinic-name"></span>
       </div>
 
-      <div style="text-align:left;margin-bottom:20px">
+      <div class="onboarding-steps">
         <div class="ob-step">
           <span class="ob-step-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
           <div class="ob-step-text"><strong>Registre</strong> seus pensamentos automáticos e sentimentos</div>
@@ -79,13 +84,14 @@
         </div>
         <div class="ob-step">
           <span class="ob-step-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
-          <div class="ob-step-text"><strong>Privacidade:</strong> seus dados ficam <strong>apenas no seu dispositivo</strong></div>
+          <div class="ob-step-text"><strong>Privacidade:</strong> os registros ficam no dispositivo e são sincronizados com o Supabase quando há conexão</div>
         </div>
       </div>
 
+      <label class="auth-field-label" for="ob-patient-name">Seu nome</label>
       <input class="ob-input" id="ob-patient-name" type="text" placeholder="Qual é o seu nome?" autocomplete="name">
-      <button class="btn-save" onclick="App.submitOnboarding()">Começar →</button>
-    </div>
+      <button type="submit" class="btn-save">Começar →</button>
+    </form>
   </div>
 </div>
 
@@ -107,7 +113,7 @@
       <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 7 2.65A4 4 0 0 0 19 17v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-7-2.65A3.99 3.99 0 0 0 9 3Z"/><path d="M12 4v16"/></svg>
       <h2>RDP Pro</h2>
       <p>Para usar este app, você precisa do link de convite do seu psicólogo(a).</p>
-      <p style="margin-top:12px;font-size:0.82rem;color:#aaa">Se você já usou o app antes e perdeu o acesso, abra o link de convite novamente.</p>
+      <p class="recovery-note">Se você já usou o app antes e perdeu o acesso, abra o link de convite novamente.</p>
     </div>
   </div>
 </div>
@@ -117,7 +123,7 @@
 
   <header>
     <div class="header-left">
-      <button class="theme-btn" onclick="App.toggleTheme()" id="theme-btn" title="Alternar tema"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg></button>
+      <button class="theme-btn" onclick="App.toggleTheme()" id="theme-btn" title="Alternar tema" aria-label="Alternar entre tema claro e escuro"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a7 7 0 1 0 11 11Z"/></svg></button>
     </div>
     <div class="header-title">
       <h1><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 7 2.65A4 4 0 0 0 19 17v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-7-2.65A3.99 3.99 0 0 0 9 3Z"/><path d="M12 4v16"/></svg> Registro de Pensamentos</span></h1>
@@ -127,48 +133,49 @@
     </div>
   </header>
 
-  <div class="tabs">
-    <div class="tab active" onclick="App.showTab('formulario',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Formulário</span></div>
-    <div class="tab" onclick="App.showTab('historico',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> Histórico</span></div>
-    <div class="tab" onclick="App.showTab('insights',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg> Insights</span></div>
-    <div class="tab" onclick="App.showTab('privacidade',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Privacidade</span></div>
-  </div>
+  <nav class="tabs" aria-label="Navegação principal">
+    <button type="button" class="tab active" aria-pressed="true" aria-controls="page-formulario" onclick="App.showTab('formulario',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Formulário</span></button>
+    <button type="button" class="tab" aria-pressed="false" aria-controls="page-historico" onclick="App.showTab('historico',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg> Histórico</span></button>
+    <button type="button" class="tab" aria-pressed="false" aria-controls="page-insights" onclick="App.showTab('insights',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg> Insights</span></button>
+    <button type="button" class="tab" aria-pressed="false" aria-controls="page-privacidade" onclick="App.showTab('privacidade',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Privacidade</span></button>
+  </nav>
 
   <!-- FORMULÁRIO -->
-  <div class="page active" id="page-formulario">
+  <div class="page active" id="page-formulario" aria-hidden="false">
     <div id="form-locked" class="locked-banner" style="display:none">
       <h3>Limite de dias atingido</h3>
       <p>Você não pode salvar novos registros até enviar o histórico e limpar o ciclo.</p>
       <button class="btn-go-history" onclick="App.goHistory()">Ir para o Histórico</button>
     </div>
     <div id="form-content">
-      <div class="form-area">
+      <form id="record-form" onsubmit="event.preventDefault();App.saveRecord()">
+        <div class="form-area">
 
         <!-- ── FASE 1: O QUE ACONTECEU ─────────────────────────────────── -->
         <div class="form-phase-label"><span>O que aconteceu</span></div>
 
-        <div class="field-card">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg> Data / Hora</span></label>
+        <fieldset class="field-card datetime-field">
+          <legend><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg> Data / Hora</span></legend>
           <div class="datetime-row">
-            <input type="date" id="f-date">
-            <input type="time" id="f-time">
-            <button class="btn-now" onclick="App.setNow()">Agora</button>
+            <input type="date" id="f-date" aria-label="Data do registro">
+            <input type="time" id="f-time" aria-label="Hora do registro">
+            <button type="button" class="btn-now" onclick="App.setNow()">Agora</button>
           </div>
-        </div>
+        </fieldset>
         <div class="field-card">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2"/></svg> Situação</span> <span class="char-count" id="cc-situation"></span></label>
+          <label for="f-situation"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2"/></svg> Situação</span> <span class="char-count" id="cc-situation"></span></label>
           <textarea id="f-situation" placeholder="onde você estava, o que aconteceu, com quem..." oninput="App.autoResize(this);App.updateCount('f-situation','cc-situation')"></textarea>
         </div>
         <div class="field-card">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg> Pensamento Automático</span> <span class="char-count" id="cc-thought"></span></label>
+          <label for="f-thought"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg> Pensamento Automático</span> <span class="char-count" id="cc-thought"></span></label>
           <textarea id="f-thought" placeholder="o que passou pela sua cabeça naquele momento..." oninput="App.autoResize(this);App.updateCount('f-thought','cc-thought')"></textarea>
         </div>
         <div class="field-card">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg> Sentimento</span> <span class="char-count" id="cc-feeling"></span></label>
+          <label for="f-feeling"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg> Sentimento</span> <span class="char-count" id="cc-feeling"></span></label>
           <textarea id="f-feeling" placeholder="que emoção você sentiu — ansiedade, tristeza, raiva..." oninput="App.autoResize(this);App.updateCount('f-feeling','cc-feeling')"></textarea>
         </div>
         <div class="field-card">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg> Grau de Ansiedade Inicial (0–10)</span></label>
+          <label for="f-anxiety1"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg> Grau de Ansiedade Inicial (0–10)</span></label>
           <div class="slider-row">
             <input type="range" min="0" max="10" value="0" id="f-anxiety1" oninput="document.getElementById('anx1-val').textContent=this.value">
             <span class="slider-val" id="anx1-val">0</span>
@@ -184,15 +191,15 @@
         <div class="form-phase-label"><span>Reflexão</span></div>
 
         <div class="field-card field-card--reflection">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 13h8l-1 7 9-13h-8Z"/></svg> Reação / Comportamento</span> <span class="char-count" id="cc-reaction"></span></label>
+          <label for="f-reaction"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-9 13h8l-1 7 9-13h-8Z"/></svg> Reação / Comportamento</span> <span class="char-count" id="cc-reaction"></span></label>
           <textarea id="f-reaction" placeholder="como você reagiu, o que fez..." oninput="App.autoResize(this);App.updateCount('f-reaction','cc-reaction')"></textarea>
         </div>
         <div class="field-card field-card--reflection">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22V12"/><path d="M12 12C7 12 4 9 4 4c5 0 8 3 8 8Z"/><path d="M12 14c5 0 8-3 8-8-5 0-8 3-8 8Z"/></svg> Pensamento Alternativo</span> <span class="char-count" id="cc-alt"></span></label>
+          <label for="f-alt-thought"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22V12"/><path d="M12 12C7 12 4 9 4 4c5 0 8 3 8 8Z"/><path d="M12 14c5 0 8-3 8-8-5 0-8 3-8 8Z"/></svg> Pensamento Alternativo</span> <span class="char-count" id="cc-alt"></span></label>
           <textarea id="f-alt-thought" placeholder="uma forma mais equilibrada de ver a situação..." oninput="App.autoResize(this);App.updateCount('f-alt-thought','cc-alt')"></textarea>
         </div>
         <div class="field-card field-card--reflection">
-          <label><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg> Grau de Ansiedade Final (0–10)</span></label>
+          <label for="f-anxiety2"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg> Grau de Ansiedade Final (0–10)</span></label>
           <div class="slider-row">
             <input type="range" min="0" max="10" value="0" id="f-anxiety2" oninput="document.getElementById('anx2-val').textContent=this.value">
             <span class="slider-val" id="anx2-val">0</span>
@@ -204,39 +211,58 @@
           </div>
         </div>
 
-      </div>
-      <div class="form-actions">
-        <button class="btn-clear" onclick="App.clearForm()">Limpar</button>
-        <button class="btn-save" id="btn-save" onclick="App.saveRecord()">Salvar Registro</button>
-      </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-clear" onclick="App.clearForm()">Limpar</button>
+          <button type="submit" class="btn-save" id="btn-save">Salvar Registro</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- HISTÓRICO -->
-  <div class="page" id="page-historico">
+  <div class="page" id="page-historico" aria-hidden="true">
     <div class="history-area" id="history-area"></div>
   </div>
 
   <!-- INSIGHTS -->
-  <div class="page" id="page-insights">
+  <div class="page" id="page-insights" aria-hidden="true">
     <div class="insights-area" id="insights-area"></div>
   </div>
 
   <!-- PRIVACIDADE -->
-  <div class="page" id="page-privacidade">
-    <div class="privacy-info">
-      <strong>Seus dados são 100% privados</strong><br><br>
-      Todos os seus registros são armazenados <strong>apenas no seu dispositivo</strong> (memória local do app). Eles nunca são enviados para nenhum servidor sem a sua ação explícita.<br><br>
-      Quando você toca em <strong>"Enviar Relatório"</strong>, os dados são transmitidos de forma segura diretamente para o e-mail do seu psicólogo(a). Nenhum terceiro tem acesso.<br><br>
-      O app não coleta dados analíticos, não tem rastreamento, não tem anúncios.<br><br>
-      <strong>Para Android:</strong> instale o app tocando em "Adicionar à tela inicial" no Chrome.<br>
-      <strong>Para iPhone:</strong> abra no Safari e toque em "Compartilhar → Adicionar à Tela de Início".
-    </div>
-    <div style="padding:0 20px 20px">
-      <div class="field-card" style="text-align:center">
-        <p style="font-size:0.84rem;color:var(--text-muted);margin-bottom:10px">Versão do app</p>
-        <p style="font-family:var(--font-app);font-size:1.1rem;color:var(--accent)">RDP Pro v1.0.0</p>
-      </div>
+  <div class="page" id="page-privacidade" aria-hidden="true">
+    <div class="privacy-area">
+      <section class="privacy-info" aria-labelledby="privacy-title">
+        <h2 id="privacy-title">Como seus dados são usados</h2>
+        <p>Seus dados de conta e registros ficam neste dispositivo e são sincronizados com o Supabase para permitir acesso autenticado e recuperação em outros dispositivos.</p>
+        <p>Quando você escolhe <strong>Enviar Relatório</strong>, o conteúdo do ciclo é enviado ao e-mail configurado pelo profissional. O envio só acontece após sua ação.</p>
+        <p class="privacy-note">Esta é uma explicação funcional resumida do app, não uma política jurídica final.</p>
+      </section>
+
+      <section class="privacy-actions field-card" aria-labelledby="privacy-actions-title">
+        <h2 id="privacy-actions-title">Seus dados, sob seu controle</h2>
+        <p id="privacy-actions-copy">Baixe uma cópia ou remova os dados sincronizados e locais.</p>
+        <div class="privacy-action-grid">
+          <button type="button" class="btn-save" id="btn-export-data" aria-describedby="privacy-actions-copy" onclick="App.exportData()">Exportar dados (JSON)</button>
+          <button type="button" class="btn-clear" id="btn-clear-records" aria-describedby="privacy-actions-copy" onclick="App.confirmClear()">Apagar registros</button>
+        </div>
+        <div class="privacy-danger-zone">
+          <div>
+            <strong>Excluir conta</strong>
+            <span id="privacy-delete-copy">Remove sua conta e os registros associados. Esta ação não pode ser desfeita.</span>
+          </div>
+          <button type="button" class="btn-del" id="btn-delete-account" aria-describedby="privacy-delete-copy" onclick="App.deleteAccount()">Excluir conta e dados</button>
+        </div>
+      </section>
+
+      <section class="install-info" aria-labelledby="install-title">
+        <h2 id="install-title">Instalar o aplicativo</h2>
+        <p><strong>Android:</strong> no Chrome, use “Adicionar à tela inicial”.</p>
+        <p><strong>iPhone:</strong> no Safari, use “Compartilhar → Adicionar à Tela de Início”.</p>
+      </section>
+
+      <div class="app-version" aria-label="Versão do aplicativo">RDP Pro v1.1.3</div>
     </div>
   </div>
 
@@ -247,9 +273,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="js/config.js?v=1.12"></script>
-<script src="js/db.js?v=1.12"></script>
-<script src="js/app.js?v=1.12"></script>
+<script src="js/config.js?v=1.13"></script>
+<script src="js/db.js?v=1.13"></script>
+<script src="js/app.js?v=1.13"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {

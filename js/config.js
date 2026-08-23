@@ -8,10 +8,10 @@ const CONFIG = {
     url: "https://ofojfewdeamfackofjgt.supabase.co",
     anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mb2pmZXdkZWFtZmFja29mamd0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MzQwMjMsImV4cCI6MjA5NDUxMDAyM30.UCo5czC_I4GZwogk4ZRVDL-CyFKMBHhF-q76zVksmUQ",
   },
-  // E-mail de teste (substitui o do psicólogo em modo dev)
-  devEmail: IS_DEV ? "vinnitog@gmail.com" : null,
+  // Defina apenas em runtime local quando for realmente necessario.
+  devEmail: null,
   isDev: IS_DEV,
-  appVersion: "1.1.2",
+  appVersion: "1.1.3",
   maxCycleDays: 10, // padrão, sobrescrito pelas settings do psicólogo
 };
 

@@ -17,11 +17,15 @@ const App = (() => {
 
     try {
       if (urlToken) {
+        // Remove apenas o convite; parametros/hash de confirmacao do Supabase
+        // precisam permanecer ate o cliente de auth processar o retorno.
+        const cleanUrl = new URL(location.href);
+        cleanUrl.searchParams.delete("convite");
+        cleanUrl.searchParams.delete("token");
+        history.replaceState({}, "", `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
         state.pendingInviteToken = urlToken;
         DB.Patient.savePendingInvite(urlToken);
         state.session = await DB.Patient.resolveToken(urlToken);
-        // Remove token da URL sem reload
-        history.replaceState({}, "", location.pathname);
       }
 
       const authSession = await DB.Patient.getAuthSession();
@@ -261,11 +265,17 @@ const App = (() => {
   }
 
   async function signOut() {
-    await DB.Patient.signOut();
-    state.session = null;
-    state.records = [];
-    showScreen("screen-patient-auth");
-    renderPatientAuth();
+    try {
+      await DB.Patient.signOut();
+    } catch {
+      // A limpeza local ocorre em DB.Patient.signOut mesmo se a rede falhar.
+    } finally {
+      state.session = null;
+      state.records = [];
+      state.pendingInviteToken = null;
+      showScreen("screen-patient-auth");
+      renderPatientAuth();
+    }
   }
 
   // ─── RENDERIZAÇÃO PRINCIPAL ───────────────────────────────────────────────
@@ -294,10 +304,21 @@ const App = (() => {
 
   // ─── TABS ─────────────────────────────────────────────────────────────────
   function showTab(name, el) {
-    document.querySelectorAll(".page").forEach((p) => p.classList.remove("active"));
-    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-    document.getElementById("page-" + name).classList.add("active");
-    if (el) el.classList.add("active");
+    document.querySelectorAll(".page").forEach((p) => {
+      p.classList.remove("active");
+      p.setAttribute("aria-hidden", "true");
+    });
+    document.querySelectorAll(".tab").forEach((t) => {
+      t.classList.remove("active");
+      t.setAttribute("aria-pressed", "false");
+    });
+    const page = document.getElementById("page-" + name);
+    page.classList.add("active");
+    page.setAttribute("aria-hidden", "false");
+    if (el) {
+      el.classList.add("active");
+      el.setAttribute("aria-pressed", "true");
+    }
     if (name === "historico") renderHistory();
     if (name === "formulario") applyLockUI();
     if (name === "insights") renderInsights();
@@ -422,7 +443,7 @@ const App = (() => {
     if (!records.length) { showToast("Nenhum registro para enviar"); return; }
 
     const btn = document.getElementById("btn-send-email");
-    if (btn) { btn.disabled = true; btn.textContent = "⏳ Enviando..."; }
+    if (btn) { btn.disabled = true; btn.textContent = "Enviando..."; }
 
     try {
       await DB.Report.send(records);
@@ -540,13 +561,68 @@ const App = (() => {
     showToast("PDF exportado!");
   }
 
-  function confirmClear() {
-    if (confirm("Histórico enviado?\n\nTodos os registros serão apagados e um novo ciclo começará.")) {
-      DB.Records.clearAll();
+  async function exportData() {
+    const btn = document.getElementById("btn-export-data");
+    if (btn) { btn.disabled = true; btn.textContent = "Preparando..."; }
+
+    try {
+      await DB.Records.syncPending({ throwOnError: true });
+      const data = await DB.Patient.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `rdp-pro-dados-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("Dados exportados em JSON");
+    } catch (e) {
+      showToast(e.message || "Não foi possível exportar os dados");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "Exportar dados (JSON)"; }
+    }
+  }
+
+  async function confirmClear() {
+    if (confirm("Todos os registros locais e sincronizados serão apagados. Deseja continuar?")) {
+      const btn = document.getElementById("btn-clear-records");
+      if (btn) { btn.disabled = true; btn.textContent = "Apagando..."; }
+      try {
+        await DB.Records.clearAll();
+      } catch (e) {
+        showToast(e.message || "Não foi possível apagar os registros");
+        if (btn) { btn.disabled = false; btn.textContent = "Apagar registros"; }
+        return;
+      }
       state.records = [];
+      clearForm();
       renderHistory();
       applyLockUI();
-      showToast("Histórico limpo! Novo ciclo iniciado");
+      showToast("Registros apagados");
+      if (btn) { btn.disabled = false; btn.textContent = "Apagar registros"; }
+    }
+  }
+
+  async function deleteAccount() {
+    if (!confirm("Excluir sua conta e todos os registros? Esta ação não pode ser desfeita.")) return;
+    if (!confirm("Confirme novamente: deseja excluir permanentemente a conta e os dados?")) return;
+
+    const btn = document.getElementById("btn-delete-account");
+    if (btn) { btn.disabled = true; btn.textContent = "Excluindo..."; }
+
+    try {
+      await DB.Patient.deleteAccount();
+      state.session = null;
+      state.records = [];
+      state.pendingInviteToken = null;
+      showScreen("screen-patient-auth");
+      renderPatientAuth();
+      showPatientAuthMessage("Conta e dados excluídos.", "success");
+    } catch (e) {
+      showToast(e.message || "Não foi possível excluir a conta");
+      if (btn) { btn.disabled = false; btn.textContent = "Excluir conta e dados"; }
     }
   }
 
@@ -568,6 +644,15 @@ const App = (() => {
       x: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
     };
     return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.heart}</svg>`;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function iconLabel(icon, label) {
@@ -690,14 +775,14 @@ const App = (() => {
       html += `<div class="history-empty"><p>Nenhum registro ainda.<br>Preencha o formulário!</p><button class="empty-cta" onclick="App.showTab('formulario', document.querySelectorAll('.tab')[0])">Fazer primeiro registro</button></div>`;
     } else {
       html += `<div class="days-counter"><span>${dias}</span> dia${dias !== 1 ? "s" : ""} de ${state.maxDays}</div>`;
-      html += records.map((r) => {
-        const safe = (s) => (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      html += records.map((r, index) => {
+        const safe = escapeHtml;
         const feeling = feelingIcon(r.feeling);
         const syncDot = r.synced
           ? '<span title="Sincronizado" style="color:#6b7c4a;font-size:10px">●</span>'
           : '<span title="Pendente de sincronização" style="color:#f0ad4e;font-size:10px">●</span>';
-        return `<div class="history-item" id="item-${r.id}">
-          <div class="history-summary" onclick="App.toggleItem(${r.id})">
+        return `<div class="history-item" id="item-${index}">
+          <div class="history-summary" onclick="App.toggleItem(${index})">
             <div class="history-summary-row">
               <div class="history-date">${safe(r.datetime)} ${syncDot}</div>
               <span class="history-chevron">▾</span>
@@ -711,8 +796,8 @@ const App = (() => {
             ${r.reaction ? `<div class="detail-row"><label>Reação</label><p>${safe(r.reaction)}</p></div>` : ""}
             ${(r.altThought || r.alt_thought) ? `<div class="detail-row"><label>Pensamento Alternativo</label><p>${safe(r.altThought || r.alt_thought)}</p></div>` : ""}
             <div class="detail-actions">
-              <button class="btn-edit" onclick="App.loadRecord(${r.id})">Editar</button>
-              <button class="btn-del"  onclick="App.deleteRecord(${r.id})">Deletar</button>
+              <button class="btn-edit" onclick="App.loadRecord(${index})">Editar</button>
+              <button class="btn-del"  onclick="App.deleteRecord(${index})">Deletar</button>
             </div>
           </div>
         </div>`;
@@ -795,7 +880,7 @@ const App = (() => {
         <div class="insight-section-title">${iconLabel("heart", "Sentimentos mais frequentes")}</div>
         ${topFeelings.map(([feeling, count]) => `
           <div class="feeling-bar-row">
-            <span class="feeling-label">${feelingIcon(feeling).icon}${feeling}</span>
+            <span class="feeling-label">${feelingIcon(feeling).icon}${escapeHtml(feeling)}</span>
             <div class="feeling-bar-wrap">
               <div class="feeling-bar" style="width:${Math.round((count / records.length) * 100)}%"></div>
             </div>
@@ -819,12 +904,12 @@ const App = (() => {
   }
 
   // ─── AÇÕES DE ITEM ────────────────────────────────────────────────────────
-  function toggleItem(id) {
-    document.getElementById("item-" + id)?.classList.toggle("open");
+  function toggleItem(index) {
+    document.getElementById("item-" + index)?.classList.toggle("open");
   }
 
-  function loadRecord(id) {
-    const r = DB.Records.getAll().find((x) => x.id === id);
+  function loadRecord(index) {
+    const r = DB.Records.getAll()[index];
     if (!r) return;
 
     const parts = r.datetime.split(",")[0].trim().split("/");
@@ -861,12 +946,20 @@ const App = (() => {
     showToast("Registro carregado para edição");
   }
 
-  function deleteRecord(id) {
+  async function deleteRecord(index) {
+    const record = DB.Records.getAll()[index];
+    if (!record) return;
+    const id = record.id;
     if (!confirm("Deletar este registro?")) return;
-    DB.Records.delete(id);
-    state.records = DB.Records.getAll();
-    renderHistory();
-    showToast("Registro deletado");
+    try {
+      await DB.Records.delete(id);
+      if (state.editingId === id) clearForm();
+      state.records = DB.Records.getAll();
+      renderHistory();
+      showToast("Registro deletado");
+    } catch (e) {
+      showToast(e.message || "Não foi possível deletar o registro");
+    }
   }
 
   // ─── TOAST ────────────────────────────────────────────────────────────────
@@ -885,7 +978,7 @@ const App = (() => {
     init, submitOnboarding, submitPatientLogin, submitPatientSignup, signOut,
     toggleTheme, showTab, goHistory,
     setNow, autoResize, updateCount, clearForm, saveRecord,
-    sendReport, exportPDF, confirmClear,
+    sendReport, exportPDF, exportData, confirmClear, deleteAccount,
     toggleItem, loadRecord, deleteRecord, showToast,
     renderInsights,
   };

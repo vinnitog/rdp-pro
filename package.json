@@ -1,8 +1,8 @@
 {
   "name": "rdp-pro",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "private": true,
   "scripts": {
-    "test": "node tests/sql-rpc-regression.test.js && node tests/ui-consistency.test.js && node tests/repo-policy.test.js && node tests/sw-cache.test.js && node --check js/config.js && node --check js/db.js && node --check js/app.js && node --check js/therapist.js && node --check sw.js"
+    "test": "node tests/patient-auth-regression.test.js && node tests/data-rights-regression.test.js && node tests/sql-rpc-regression.test.js && node tests/edge-security-regression.test.js && node tests/html-security-regression.test.js && node tests/accessibility-regression.test.js && node tests/version-secrets-regression.test.js && node tests/ui-consistency.test.js && node tests/repo-policy.test.js && node tests/sw-cache.test.js && node --check js/config.js && node --check js/db.js && node --check js/app.js && node --check js/therapist.js && node --check sw.js"
   }
 }

@@ -3,8 +3,8 @@
 const Therapist = (() => {
   let profile = null;
   let dashboardPromise = null;
-  let authEnterBound = false;
   let latestInvitePatientId = null;
+  const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
   function buildPatientInviteUrl(token) {
     const url = new URL("paciente.html", location.href);
@@ -14,7 +14,6 @@ const Therapist = (() => {
   }
 
   async function init() {
-    _bindAuthEnter();
     try {
       const session = await DB.Auth.getSession();
       if (!session) {
@@ -26,18 +25,6 @@ const Therapist = (() => {
       showView("view-autenticacao");
       handleDashboardError(e);
     }
-  }
-
-  function _bindAuthEnter() {
-    if (authEnterBound) return;
-    authEnterBound = true;
-    const onEnter = (fn) => (e) => { if (e.key === "Enter") fn(); };
-    ["t-email", "t-password"].forEach((id) => {
-      document.getElementById(id)?.addEventListener("keydown", onEnter(signIn));
-    });
-    ["signup-email", "signup-password", "signup-name"].forEach((id) => {
-      document.getElementById(id)?.addEventListener("keydown", onEnter(signUp));
-    });
   }
 
   DB.Auth.onAuthChange((event) => {
@@ -180,6 +167,7 @@ const Therapist = (() => {
   }
 
   function _renderPatientCards(patients, container) {
+    patients = patients.filter((patient) => UUID_PATTERN.test(patient.id));
     if (!patients.length) {
       container.innerHTML = `<div class="t-empty">
         <p>Nenhum paciente encontrado.</p>
@@ -211,7 +199,7 @@ const Therapist = (() => {
         </div>
         <div class="patient-actions">
           <button class="t-btn t-btn-sm" onclick="Therapist.regenerateInvite('${p.id}')">Gerar novo link</button>
-          <button class="t-btn t-btn-sm" onclick="Therapist.viewRecords('${p.id}', '${esc(p.full_name || "Paciente")}')">Ver registros</button>
+          <button class="t-btn t-btn-sm" onclick="Therapist.viewRecords('${p.id}')">Ver registros</button>
           ${statusButton}
         </div>
       </div>`;
@@ -289,7 +277,8 @@ const Therapist = (() => {
   }
 
   // ─── VER REGISTROS ────────────────────────────────────────────────────────
-  async function viewRecords(patientId, patientName) {
+  async function viewRecords(patientId) {
+    const patientName = _patientsCache.find((patient) => patient.id === patientId)?.full_name || "Paciente";
     showView("view-registros-paciente");
     document.getElementById("pr-patient-name").textContent = patientName;
     document.getElementById("pr-records-area").innerHTML =
@@ -362,7 +351,11 @@ const Therapist = (() => {
   // ─── HELPERS ──────────────────────────────────────────────────────────────
   function esc(s) {
     return (s || "")
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#39;");
   }
 
   function showError(id, msg, type = "error") {

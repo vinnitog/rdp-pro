@@ -38,30 +38,30 @@ const dbJs = read("js/db.js");
 const therapistJs = read("js/therapist.js");
 
 for (const [file, html] of [
-  ["index.html", indexHtml],
   ["paciente.html", patientHtml],
   ["psicologo.html", therapistHtml],
   ["therapist.html", therapistAliasHtml],
 ]) {
   assert.match(
     html,
-    /family=Inter:wght@400;500;600;700&display=swap/,
-    `${file}: should load the single app font`
+    /family=DM\+Sans:wght@400;500;600;700&family=Lora:wght@500;600;700&display=swap/,
+    `${file}: should load the documented Lora and DM Sans identity`
   );
   assert.doesNotMatch(
     html,
-    /family=.*(?:Lora|DM\+Sans)/,
-    `${file}: should not load mixed font families`
+    /family=Inter/,
+    `${file}: should not load the legacy Inter-only typography`
   );
 }
+assert.doesNotMatch(indexHtml, /fonts\.googleapis\.com/, "index.html: redirect route should not load web fonts");
 
 for (const [file, css] of [
   ["css/app.css", appCss],
   ["css/therapist.css", therapistCss],
 ]) {
-  assert.match(css, /--font-app:\s*'Inter'/, `${file}: should expose the shared app font token`);
-  assert.doesNotMatch(css, /font-family:\s*'Lora'/, `${file}: should not use Lora`);
-  assert.doesNotMatch(css, /font-family:\s*'DM Sans'/, `${file}: should not use DM Sans`);
+  assert.match(css, /--font-app:\s*'DM Sans'/, `${file}: should expose DM Sans as the body token`);
+  assert.match(css, /--font-display:\s*'Lora'/, `${file}: should expose Lora as the display token`);
+  assert.doesNotMatch(css, /--font-app:\s*'Inter'/, `${file}: should not use the legacy Inter token`);
 }
 
 assert.doesNotMatch(
@@ -184,5 +184,26 @@ assert.match(
   /fetchAndMerge/,
   "js/app.js: bootApp must call fetchAndMerge() to load records from Supabase"
 );
+
+assert.match(patientHtml, /class="privacy-danger-zone"/, "patient privacy page should visually isolate destructive account deletion");
+assert.match(patientHtml, /id="privacy-delete-copy"[\s\S]*?não pode ser desfeita/i, "account deletion should explain its irreversible impact");
+assert.match(patientHtml, /id="btn-delete-account"[^>]*aria-describedby="privacy-delete-copy"/, "account deletion should reference its warning copy");
+
+assert.match(
+  appCss,
+  /@media \(max-width:\s*560px\)[\s\S]*?\.privacy-action-grid\s*\{[^}]*grid-template-columns:\s*1fr[\s\S]*?\.privacy-danger-zone\s*\{[^}]*flex-direction:\s*column[\s\S]*?\.privacy-danger-zone \.btn-del\s*\{[^}]*min-height:\s*44px/,
+  "patient privacy actions should stack with a 44px destructive target on narrow screens"
+);
+assert.match(
+  therapistCss,
+  /@media \(max-width:\s*600px\)[\s\S]*?\.create-patient-row\s*\{[^}]*flex-direction:\s*column[\s\S]*?\.create-patient-row \.t-btn\s*\{[^}]*min-height:\s*44px/,
+  "professional create-patient form should stack with a 44px submit target on narrow screens"
+);
+
+for (const [file, css] of [["css/app.css", appCss], ["css/therapist.css", therapistCss]]) {
+  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)/, `${file}: should honor reduced-motion preferences`);
+  assert.match(css, /prefers-reduced-motion:[\s\S]*?animation-duration:\s*0\.01ms\s*!important/, `${file}: reduced motion should minimize animations`);
+  assert.match(css, /prefers-reduced-motion:[\s\S]*?transition-duration:\s*0\.01ms\s*!important/, `${file}: reduced motion should minimize transitions`);
+}
 
 console.log("UI consistency tests passed");

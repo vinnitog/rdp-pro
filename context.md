@@ -41,15 +41,21 @@ rdp-pro/
     |-- migrations/
     |   |-- 001_initial_schema.sql
     |   |-- 002_fix_rls_security.sql
-    |   `-- 003_patient_auth_ptbr_routes.sql
+    |   |-- 003_patient_auth_ptbr_routes.sql
+    |   |-- 004_repair_patient_auth_rpc.sql
+    |   |-- 005_fix_claim_patient_invite_ambiguity.sql
+    |   |-- 006_invite_single_use.sql
+    |   `-- 007_patient_data_rights.sql
     `-- functions/
+        |-- _shared/
         |-- enviar-relatorio/
+        |-- excluir-conta/
         `-- send-report/    # compatibilidade
 ```
 
 ## Banco
 
-Projeto Supabase: `ofojfewdeamfackofjgt`
+Projeto Supabase: configure o identificador do seu ambiente localmente; nao o documente neste arquivo.
 
 Tabelas:
 - `therapists`: profissionais vinculados a `auth.users`.
@@ -87,6 +93,7 @@ Campos relevantes em `patients`:
 - `claim_patient_invite(p_token, p_full_name)`: vincula convite a conta autenticada e marca `invite_used_at`.
 - `get_current_patient()`: recupera paciente pela sessao autenticada.
 - `update_current_patient_name(p_full_name)`: atualiza nome do paciente logado.
+- `export_current_patient_data()`: exporta apenas o perfil e os registros do paciente autenticado.
 
 ## Decisoes tecnicas
 
@@ -95,6 +102,7 @@ Campos relevantes em `patients`:
 - `enviar-relatorio` e o endpoint principal, com fallback legado para `send-report`.
 - `localStorage` segue como fonte primaria do paciente para uso offline.
 - Supabase RLS passa a validar registros pelo `patients.user_id` autenticado.
+- Exclusoes remotas confirmam a ausencia dos registros no servidor antes de apagar o cache local.
 - `CACHE_NAME` deve ser incrementado a cada deploy com mudancas em HTML/CSS/JS.
 
 ## Workflow Git
