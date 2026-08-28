@@ -3,7 +3,7 @@
 **Projeto**: RDP Pro
 **Cenário**: B — sistema existente em retrofit
 **Início**: 2026-08-22
-**Última atualização**: 2026-08-23
+**Última atualização**: 2026-08-28
 **Encarregado**: pendente de avaliação/designação
 
 ## Pipeline atual
@@ -18,7 +18,7 @@
 - [x] L7 — Direitos dos titulares (self-service MVP; canal operacional pendente)
 - [x] L8 — Resposta a incidentes (runbook, log e modelos preparatórios)
 - [ ] L9 — Política de privacidade (v0.1-draft aguardando revisão humana/jurídica)
-- [ ] L10 — Avaliação de aplicabilidade do ECA Digital
+- [x] L10 — Público atual definido como 18+; reavaliar antes de admitir menores
 - [ ] L11 — RIPD para tratamento de alto risco
 - [ ] L12 — Encarregado
 - [ ] L13 — Relatório e plano finais
@@ -26,8 +26,8 @@
 ## Artefatos gerados
 
 - `.lgpd/discovery.md` — diagnóstico técnico inicial, 2026-08-22
-- `.lgpd/gaps.md` — gap analysis e plano priorizado, 2026-08-22
-- `.lgpd/data-map.md` — mapa de 8 atividades de tratamento, 2026-08-23
+- `.lgpd/gaps.md` — gap analysis atualizado após remediações técnicas, 2026-08-28
+- `.lgpd/data-map.md` — mapa de 8 atividades atualizado para o público 18+, 2026-08-28
 - `.lgpd/legal-basis.md` — hipóteses legais para validação, 2026-08-23
 - `.lgpd/vendors/inventory.md` — inventário preliminar de operadores, 2026-08-23
 - `.lgpd/retention.md` — matriz de retenção e controles de eliminação, 2026-08-23
@@ -38,8 +38,8 @@
 
 ## Gaps abertos
 
-Foram identificados 10 gaps vermelhos, 5 amarelos e 2 controles verdes. Ver `.lgpd/gaps.md`.
+Permanecem 4 gaps vermelhos, 9 amarelos e 4 controles verdes. A contagem reflete o código e os artefatos do repositório, sem atestar o ambiente implantado. Ver `.lgpd/gaps.md`.
 
 ## Próximo passo
 
-Checkpoint humano obrigatório: preencher os dados do controlador/encarregado, decidir as bases legais, público menor, retenção e transferências, e submeter a minuta v0.1 a revisão jurídica antes de publicar. Após aprovação explícita, concluir L9 e avaliar L10–L13.
+Checkpoint humano obrigatório: preencher os dados do controlador/encarregado, validar as bases legais, retenção e transferências, incorporar a limitação 18+ aos documentos operacionais e submeter a minuta v0.1 a revisão jurídica antes de publicar. Depois da aprovação explícita, concluir L9 e L11–L13. Se o público mudar, reabrir L10 antes de admitir menores.

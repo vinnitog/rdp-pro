@@ -1,11 +1,11 @@
 # Mapa de Dados — RDP Pro
 
 **Versão**: v0.1
-**Data**: 2026-08-23
+**Data**: 2026-08-28
 **Owner global**: a definir pelo controlador
 **Escopo**: reverse-engineering do repositório; ambiente, contratos, regiões, logs e backups não verificados.
 
-> O vínculo com psicólogo ou serviço de saúde mental pode revelar informação de saúde pelo contexto. Atividades do paciente são classificadas como sensíveis ou potencialmente sensíveis. O uso por menores não foi confirmado.
+> O vínculo com psicólogo ou serviço de saúde mental pode revelar informação de saúde pelo contexto. Atividades do paciente são classificadas como sensíveis ou potencialmente sensíveis. O público atual foi definido como adulto (18+); admitir menores exige reabrir esta avaliação.
 
 ## A001 — Conta e perfil do profissional
 
@@ -32,7 +32,7 @@
 | Slug | `a002-convite-vinculo-paciente` |
 | Finalidade | Introduzir o paciente, vinculá-lo ao profissional correto e controlar o convite. |
 | Base legal | **HIPÓTESE A VALIDAR** — Art. 7º, V, para identificadores necessários; Art. 11, II, `f`, somente se confirmada tutela da saúde, ou Art. 11, I. |
-| Titulares | Pacientes; menores a confirmar. |
+| Titulares | Pacientes adultos (18+). |
 | Sensíveis? | potencialmente, pelo vínculo assistencial. |
 | Dados | nome opcional, IDs, token, uso do convite, status e timestamps. |
 | Fonte | profissional e sistema. |
@@ -51,7 +51,7 @@
 | Slug | `a003-conta-auth-paciente` |
 | Finalidade | Autenticar o paciente e associar sua conta ao vínculo correto. |
 | Base legal | **HIPÓTESE A VALIDAR** — Art. 7º, V, para conta; Art. 11, II, `f`, para vínculo sensível, ou Art. 11, I. |
-| Titulares | Pacientes; idade não coletada. |
+| Titulares | Pacientes adultos (18+); idade não é coletada pelo app. |
 | Sensíveis? | potencialmente, pelo vínculo assistencial. |
 | Dados | nome, e-mail, credencial, IDs, token temporário, vínculo e último acesso. |
 | Fonte | titular, profissional, Auth e sistema. |
@@ -70,7 +70,7 @@
 | Slug | `a004-registro-terapeutico-local` |
 | Finalidade | Permitir ao paciente registrar e consultar pensamentos, sentimentos e ansiedade. |
 | Base legal | **HIPÓTESE A VALIDAR** — Art. 11, II, `f`, se integrar tutela da saúde; alternativa Art. 11, I. |
-| Titulares | Pacientes; menores a confirmar. |
+| Titulares | Pacientes adultos (18+). |
 | Sensíveis? | sim — saúde/conteúdo terapêutico. |
 | Dados | data/hora, situação, pensamentos, sentimentos, ansiedade, reação e identificador. |
 | Fonte | titular; métricas derivadas no navegador. |
@@ -89,7 +89,7 @@
 | Slug | `a005-sync-acesso-clinico` |
 | Finalidade | Persistir registros, recuperá-los e disponibilizá-los ao profissional vinculado. |
 | Base legal | **HIPÓTESE A VALIDAR** — Art. 11, II, `f`, sob confirmação de tutela da saúde e papéis; alternativa Art. 11, I. |
-| Titulares | Pacientes; menores a confirmar. |
+| Titulares | Pacientes adultos (18+). |
 | Sensíveis? | sim. |
 | Dados | conteúdo terapêutico integral, IDs e timestamps. |
 | Fonte | titular e sistema. |
@@ -108,7 +108,7 @@
 | Slug | `a006-insights-exportacao` |
 | Finalidade | Exibir indicadores ao titular e gerar cópia portátil sob sua ação. |
 | Base legal | **HIPÓTESE A VALIDAR** — Art. 11, II, `f`, se integrar tutela da saúde; alternativa Art. 11, I. |
-| Titulares | Pacientes; menores a confirmar. |
+| Titulares | Pacientes adultos (18+). |
 | Sensíveis? | sim — reproduz e deriva dados de saúde. |
 | Dados | registros, médias, variações, contagens e sentimentos. |
 | Fonte | derivado dos registros. |
@@ -127,7 +127,7 @@
 | Slug | `a007-relatorio-email` |
 | Finalidade | Enviar ao profissional vinculado, sob ação do paciente, histórico para acompanhamento. |
 | Base legal | **HIPÓTESE A VALIDAR** — Art. 11, II, `f`, se fizer parte da tutela da saúde; alternativa Art. 11, I, específico para o envio. |
-| Titulares | paciente e profissional; menores a confirmar. |
+| Titulares | paciente adulto (18+) e profissional. |
 | Sensíveis? | sim — relatório terapêutico integral. |
 | Dados | nome, registros, datas/fuso, perfil e e-mail do profissional, autenticação e metadados. |
 | Fonte | paciente, app, profissional e sistema. |
@@ -163,5 +163,5 @@
 - Tabelas cobertas: `therapists`, `patients`, `records` e `auth.users` via Supabase Auth.
 - Integrações cobertas: Supabase, Resend, Google Fonts, jsDelivr, cdnjs, Deno/esm.sh e hosting a confirmar.
 - Retenção permanece a definir em todas as atividades.
-- Confirmar controlador(es), público menor, escala, regiões, suboperadores, logs, backups e contratos.
+- Confirmar controlador(es), escala, regiões, suboperadores, logs, backups e contratos; formalizar a restrição 18+ nos termos e no processo operacional.
 - RIPD prioritário: A005 e A007; reavaliar A002–A006 após confirmação operacional.

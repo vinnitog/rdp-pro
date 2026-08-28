@@ -19,7 +19,14 @@ const DB = (() => {
   // ─── LOCAL STORAGE HELPERS ──────────────────────────────────────────────────
   const LS = {
     get: (key) => { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
-    set: (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} },
+    set: (key, val) => {
+      try {
+        localStorage.setItem(key, JSON.stringify(val));
+        return true;
+      } catch {
+        return false;
+      }
+    },
     rm:  (key) => localStorage.removeItem(key),
   };
 
@@ -48,6 +55,21 @@ const DB = (() => {
     err.details = error.details;
     err.hint = error.hint;
     throw err;
+  }
+
+  function throwInvalidInviteError() {
+    const err = new Error("Token inválido ou expirado");
+    err.code = "INVITE_INVALID";
+    throw err;
+  }
+
+  function isInvalidInviteError(error) {
+    const message = `${error?.message || ""}`.toLowerCase();
+    return error?.code === "PGRST116"
+      || message.includes("convite invalido")
+      || message.includes("convite inválido")
+      || message.includes("convite ja esta vinculado")
+      || message.includes("convite já está vinculado");
   }
 
   function generateInviteToken() {
@@ -123,8 +145,11 @@ const DB = (() => {
         .rpc("get_patient_by_token", { p_token: token })
         .single();
 
-      if (error) throwSupabaseError(error, "Token inválido ou expirado");
-      if (!data) throw new Error("Token inválido ou expirado");
+      // A RPC retorna nenhuma linha para convite ausente, expirado ou já usado.
+      // Outros erros podem ser transitórios e não devem descartar o token local.
+      if (isInvalidInviteError(error)) throwInvalidInviteError();
+      if (error) throwSupabaseError(error, "Não foi possível validar o convite");
+      if (!data) throwInvalidInviteError();
 
       const session = withoutInviteToken(data);
       Patient.save(session);
@@ -136,8 +161,9 @@ const DB = (() => {
         .rpc("claim_patient_invite", { p_token: token, p_full_name: fullName })
         .single();
 
-      if (error) throwSupabaseError(error, "Convite inválido");
-      if (!data) throw new Error("Convite inválido");
+      if (isInvalidInviteError(error)) throwInvalidInviteError();
+      if (error) throwSupabaseError(error, "Não foi possível vincular o convite");
+      if (!data) throwInvalidInviteError();
 
       const session = withoutInviteToken(data);
       Patient.save(session);
@@ -214,7 +240,9 @@ const DB = (() => {
     },
 
     save(records) {
-      LS.set(Records._key(), records);
+      if (!LS.set(Records._key(), records)) {
+        throw new Error("Não foi possível salvar no dispositivo. Libere espaço e tente novamente.");
+      }
     },
 
     add(record) {
@@ -332,19 +360,30 @@ const DB = (() => {
       const session = Patient.get();
       if (!session) return;
 
-      const { data, error } = await client()
-        .from("records")
-        .select("*")
-        .eq("patient_id", session.patient_id)
-        .order("created_at", { ascending: false });
+      const data = [];
+      const pageSize = 500;
+      let from = 0;
+      while (true) {
+        const { data: page, error } = await client()
+          .from("records")
+          .select("*")
+          .eq("patient_id", session.patient_id)
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true })
+          .range(from, from + pageSize - 1);
 
-      if (error || !data?.length) return;
+        if (error || !page) return;
+        if (!page.length) break;
+        data.push(...page);
+        from += page.length;
+      }
 
-      const local   = Records.getAll();
-      const localIds = new Set(local.map((r) => r.id));
+      const local = Records.getAll();
+      const pending = local.filter((record) => !record.synced);
+      const pendingIds = new Set(pending.map((record) => record.id));
 
       const incoming = data
-        .filter((r) => !localIds.has(r.id))
+        .filter((record) => !pendingIds.has(record.id))
         .map((r) => ({
           id:         r.id,
           datetime:   r.datetime,
@@ -360,8 +399,6 @@ const DB = (() => {
           synced:     true,
         }));
 
-      if (!incoming.length) return;
-
       const parseDate = (r) => {
         const [date, time] = (r.datetime || "").split(", ");
         if (!date) return 0;
@@ -370,7 +407,9 @@ const DB = (() => {
         return isNaN(ts) ? 0 : ts;
       };
 
-      const merged = [...local, ...incoming].sort((a, b) => parseDate(b) - parseDate(a));
+      // Registros sincronizados ausentes no servidor foram excluídos em outro
+      // dispositivo. Pendências locais continuam preservadas para novo envio.
+      const merged = [...pending, ...incoming].sort((a, b) => parseDate(b) - parseDate(a));
       Records.save(merged);
     },
   };

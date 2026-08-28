@@ -10,6 +10,8 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main-content">Pular para o conteúdo principal</a>
+
 <header class="t-header">
   <h1><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 7 2.65A4 4 0 0 0 19 17v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-7-2.65A3.99 3.99 0 0 0 9 3Z"/><path d="M12 4v16"/><path d="M8 8h1"/><path d="M15 8h1"/><path d="M8 16h1"/><path d="M15 16h1"/></svg> RDP Pro — Painel do Profissional</h1>
   <div class="t-header-actions">
@@ -17,6 +19,8 @@
     <button class="t-btn t-btn-header t-btn-header-logout" onclick="Therapist.signOut()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 19V5a2 2 0 0 0-2-2h-5"/></svg> Sair</button>
   </div>
 </header>
+
+<main id="main-content" tabindex="-1">
 
 <!-- ─── AUTH ────────────────────────────────────────────────────────────── -->
 <div class="t-view active" id="view-autenticacao">
@@ -34,7 +38,7 @@
 
     <!-- Login -->
     <form class="auth-section active" id="auth-login" aria-hidden="false" onsubmit="event.preventDefault();Therapist.signIn()">
-      <div id="auth-error" class="t-msg"></div>
+      <div id="auth-error" class="t-msg" aria-live="polite" aria-atomic="true"></div>
       <div class="t-field">
         <label for="t-email">E-mail</label>
         <input class="t-input" id="t-email" type="email" placeholder="seu@email.com" autocomplete="email">
@@ -48,7 +52,7 @@
 
     <!-- Cadastro -->
     <form class="auth-section" id="auth-signup" aria-hidden="true" onsubmit="event.preventDefault();Therapist.signUp()">
-      <div id="signup-error" class="t-msg"></div>
+      <div id="signup-error" class="t-msg" aria-live="polite" aria-atomic="true"></div>
       <div class="t-field">
         <label for="signup-name">Nome completo *</label>
         <input class="t-input" id="signup-name" type="text" placeholder="Dra. Maria Silva" autocomplete="name">
@@ -96,10 +100,14 @@
     <input class="t-input" id="new-patient-name" type="text" placeholder="Nome do paciente (opcional)" aria-label="Nome do paciente">
     <button type="submit" class="t-btn t-btn-primary" id="btn-create-patient"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg> Novo convite</button>
   </form>
-  <div class="invite-result" id="invite-result">
-    Link de convite gerado:<br>
-    <strong id="invite-url-display" class="invite-url"></strong><br><br>
-    <button class="t-btn t-btn-sm" onclick="Therapist.regenerateLatestInvite()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15 6.7"/><path d="M3 12a9 9 0 0 1 15-6.7"/><path d="M18 3v5h-5"/><path d="M6 21v-5h5"/></svg> Gerar novo link</button>
+  <div class="invite-result" id="invite-result" role="region" aria-labelledby="invite-result-title">
+    <span id="invite-result-title">Link de convite gerado</span>
+    <strong id="invite-url-display" class="invite-url" tabindex="0" aria-label="Endereço do convite"></strong>
+    <div class="invite-actions">
+      <button type="button" class="t-btn t-btn-sm" onclick="Therapist.copyLatestInvite()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copiar link</button>
+      <button type="button" class="t-btn t-btn-sm" onclick="Therapist.regenerateLatestInvite()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 0 1-15 6.7"/><path d="M3 12a9 9 0 0 1 15-6.7"/><path d="M18 3v5h-5"/><path d="M6 21v-5h5"/></svg> Gerar novo link</button>
+    </div>
+    <span class="invite-help">Se a cópia for bloqueada, o link será selecionado para você copiar manualmente.</span>
   </div>
 
   <div id="patients-list">
@@ -186,7 +194,9 @@
   </form>
 </div>
 
-<div class="toast" id="t-toast"></div>
+</main>
+
+<div class="toast" id="t-toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/config.js?v=1.13"></script>

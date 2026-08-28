@@ -1,7 +1,7 @@
 # Estratégia de precificação e monetização — RDP Pro
 
-**Versão**: v0.1
-**Data**: 23 de agosto de 2026
+**Versão**: v0.2
+**Data**: 28 de agosto de 2026
 **Status**: hipótese de produto; validar antes de implementar cobrança ou divulgar preços.
 
 ## Resumo executivo
@@ -30,10 +30,10 @@ Alternativas atuais são planilhas/formulários, mensagens e PDFs manuais, ou um
 | --- | --- | --- | --- |
 | PsicoManager | R$ 89/mês no Individual Pró e R$ 119/mês no Individual Plus | profissional individual; suíte com agenda, prontuário, financeiro e app do paciente | teto brasileiro de suíte completa; RDP Pro deve começar abaixo |
 | iClinic | R$ 99 a R$ 299/mês por profissional | suíte médica por profissional e funcionalidades | confirma convenção B2B recorrente por profissional |
-| Quenza | US$ 25/mês para 10 clientes; US$ 50/mês para 250; anual com 20% de desconto | profissionais + clientes ativos e atividades terapêuticas | valida capacidade de clientes como métrica, mas em mercado e moeda diferentes |
+| Quenza | US$ 25, US$ 50, US$ 125 e US$ 160/mês para 10, 250, 400 e 500 clientes; anual com 20% de desconto | profissionais + clientes ativos e atividades terapêuticas | valida capacidade de clientes como métrica, mas em mercado e moeda diferentes |
 | SimplePractice | US$ 49, US$ 79 e US$ 99/mês; profissionais adicionais a partir de US$ 69 | gestão completa de prática clínica | referência internacional de tiers, não comparação direta de disposição a pagar no Brasil |
 
-Fontes oficiais consultadas em 23/08/2026: [PsicoManager](https://www.psicomanager.com.br/planos), [iClinic](https://iclinic.com.br/precos/), [Quenza](https://quenza.com/pricing) e [SimplePractice](https://support.simplepractice.com/hc/en-us/articles/115005956266-SimplePractice-pricing-and-subscription-FAQs).
+PsicoManager, iClinic e Quenza foram revistos em 28/08/2026; SimplePractice permanece como referência consultada em 23/08/2026: [PsicoManager](https://www.psicomanager.com.br/planos), [iClinic](https://lps.iclinic.com.br/planos-e-precos/), [Quenza](https://help.quenza.com/article/138-quenza-plans-and-pricing) e [SimplePractice](https://support.simplepractice.com/hc/en-us/articles/115005956266-SimplePractice-pricing-and-subscription-FAQs).
 
 ## Estrutura recomendada
 
