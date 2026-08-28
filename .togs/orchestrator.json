@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "managedBy": "togs-backoffice",
+  "hubLocator": "TOGS_BACKOFFICE_PATH",
+  "projectId": "rdp-pro",
+  "responsibility": "Aplicacao de apoio psicologico com areas de paciente e profissional.",
+  "lifecycle": "active",
+  "capabilities": [
+    "frontend",
+    "auth",
+    "sensitive-personal-data",
+    "health",
+    "supabase",
+    "postgres"
+  ],
+  "skills": [
+    "diagnosing-bugs",
+    "tdd",
+    "codebase-design",
+    "domain-modeling",
+    "javascript-testing-patterns",
+    "e2e-testing-patterns",
+    "accessibility-compliance",
+    "supabase",
+    "supabase-postgres-best-practices",
+    "sast-configuration"
+  ],
+  "sources": [
+    {
+      "repository": "mattpocock/skills",
+      "commit": "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76",
+      "license": "MIT",
+      "licenseFile": ".togs/licenses/mattpocock-skills-MIT.txt"
+    },
+    {
+      "repository": "wshobson/agents",
+      "commit": "38e19c20d2b154510b0e624a2e3e186b19b5c527",
+      "license": "MIT",
+      "licenseFile": ".togs/licenses/wshobson-agents-MIT.txt"
+    },
+    {
+      "repository": "supabase/agent-skills",
+      "commit": "8331f910845103c08d51f6ca1d86ebb7d1f745e3",
+      "license": "MIT",
+      "licenseFile": ".togs/licenses/supabase-agent-skills-MIT.txt"
+    }
+  ],
+  "policy": {
+    "repositoryOwnsCodeAndGitHistory": true,
+    "crossProjectImportsAllowed": false,
+    "orchestratorMayCommitOrPush": false,
+    "syncIsAdditive": true
+  }
+}
