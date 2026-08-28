@@ -23,7 +23,8 @@
     "accessibility-compliance",
     "supabase",
     "supabase-postgres-best-practices",
-    "sast-configuration"
+    "sast-configuration",
+    "grill-me"
   ],
   "sources": [
     {

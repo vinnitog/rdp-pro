@@ -10,6 +10,7 @@
 .agents/skills/supabase/** -text -whitespace
 .agents/skills/supabase-postgres-best-practices/** -text -whitespace
 .agents/skills/sast-configuration/** -text -whitespace
+.agents/skills/grill-me/** -text -whitespace
 .claude/skills/diagnosing-bugs/** -text -whitespace
 .claude/skills/tdd/** -text -whitespace
 .claude/skills/codebase-design/** -text -whitespace
@@ -20,5 +21,6 @@
 .claude/skills/supabase/** -text -whitespace
 .claude/skills/supabase-postgres-best-practices/** -text -whitespace
 .claude/skills/sast-configuration/** -text -whitespace
+.claude/skills/grill-me/** -text -whitespace
 .togs/licenses/** -text -whitespace
 # togs-orchestrator:attributes:end

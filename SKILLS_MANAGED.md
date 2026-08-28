@@ -14,6 +14,7 @@ Este arquivo e gerado pelo hub `togs-backoffice`. O caminho local do control pla
 | `supabase` | `supabase/agent-skills` | supabase, auth, rls, edge-functions |
 | `supabase-postgres-best-practices` | `supabase/agent-skills` | postgres, schema, migration, rls, query |
 | `sast-configuration` | `wshobson/agents` | auth, personal-data, payments, security, ci |
+| `grill-me` | `mattpocock/skills` | explicit-invocation, requirements, plan, design, decision |
 
 ## Licencas
 
