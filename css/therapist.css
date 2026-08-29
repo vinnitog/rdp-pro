@@ -18,7 +18,7 @@
 
   --text:      #252520;
   --text-muted:#6b7060;
-  --text-subtle:#9a9890;
+  --text-subtle:#64675e;
 
   --danger:    #b03a2e;
   --focus-ring:rgba(107, 124, 74, 0.22);
@@ -47,7 +47,7 @@
 
   --text:      #e8e6de;
   --text-muted:#9a9e90;
-  --text-subtle:#636660;
+  --text-subtle:#a2a697;
 
   --focus-ring:rgba(147, 168, 104, 0.28);
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.28);
@@ -72,6 +72,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* [UI] Navegação por teclado: aparece apenas ao receber foco. */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 500;
+  transform: translateY(-160%);
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+}
+.skip-link:focus { transform: translateY(0); }
 
 /* [UI] Superfícies nativas alinhadas ao verde oliva do produto. */
 ::selection { background: var(--accent-light); color: var(--text); }
@@ -376,7 +392,22 @@ body {
   animation: fadeIn 0.25s ease-out;
   line-height: 1.55;
 }
-.invite-url { display: inline-block; margin-top: 4px; font-size: 0.84rem; color: var(--text); }
+.invite-url {
+  display: block;
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+  cursor: text;
+  user-select: all;
+}
+.invite-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.invite-actions .t-btn { min-height: 44px; }
+.invite-help { display: block; margin-top: 9px; color: var(--text-muted); font-size: 0.84rem; }
 
 /* ─── BUSCA DE PACIENTES ─────────────────────────────────────────────────── */
 .patients-search-row {
@@ -569,10 +600,23 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  /* [UI] Estados permanecem visíveis; apenas deslocamentos e giros são removidos. */
+  html { scroll-behavior: auto; }
+  .t-view.active,
+  .auth-section.active,
+  .invite-result,
+  .patient-card,
+  .pr-record,
+  .btn-loading::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
   }
+  .skip-link,
+  .toast,
+  .auth-tab,
+  .t-input,
+  .patient-card,
+  .pr-record,
+  button,
+  input { transition-duration: 0.01ms !important; }
 }

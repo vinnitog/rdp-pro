@@ -1,5 +1,7 @@
 # Discovery LGPD — RDP Pro
 
+> **Snapshot histórico de 22/08/2026.** Este documento registra o estado inicial encontrado antes das remediações. Para o estado atual, consulte `STATUS.md`, `gaps.md` e `data-map.md`.
+
 **Data**: 2026-08-22
 **Cenário**: sistema existente em retrofit
 **Escopo**: análise estática do repositório. O estado implantado, contratos, região de hospedagem, backups e práticas operacionais não foram verificados.

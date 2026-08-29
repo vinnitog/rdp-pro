@@ -43,6 +43,7 @@ O frontend é uma PWA em HTML, CSS e JavaScript vanilla, sem framework, bundler 
 - escape de conteúdo em HTML, assunto de e-mail e interfaces dinâmicas;
 - respostas de erro sem stack, destinatário ou detalhes de provedores;
 - exportação e exclusão autenticadas, sem usar o convite como credencial;
+- reconciliação local/remota que preserva pendências offline e reflete exclusões feitas em outro dispositivo;
 - suíte regressiva para XSS, RLS/RPC, auth, segredos e direitos do titular.
 
 Os artefatos técnicos da adequação estão em [`.lgpd/`](.lgpd/). A política de privacidade permanece como minuta para revisão jurídica; o app exibe apenas uma explicação funcional resumida.
@@ -113,6 +114,7 @@ rdp-pro/
 ├── tests/                            # regressão funcional e de segurança
 ├── .lgpd/                            # auditoria e governança técnica
 ├── .agents/skills/                   # skills incorporadas ao projeto
+├── PROJECT_CONTEXT.md                # contexto público sem configuração local
 └── docs/pricing-strategy.md          # hipótese de monetização
 ```
 
@@ -227,6 +229,7 @@ A suíte cobre:
 - **Offline-first**: o dispositivo continua útil sem conexão; a nuvem permite recuperação e acesso autenticado.
 - **Convite não é credencial**: ele serve apenas para estabelecer o vínculo inicial.
 - **Privacidade não é feature premium**: exportação, exclusão e controles de segurança não devem ser limitados por plano.
+- **Público adulto**: a versão atual destina-se exclusivamente a pessoas com 18 anos ou mais; admitir menores exige nova avaliação jurídica e técnica.
 - **Precificação ainda é hipótese**: a recomendação e os experimentos estão em [`docs/pricing-strategy.md`](docs/pricing-strategy.md); nenhuma cobrança está implementada.
 - **Compatibilidade gradual**: rotas e endpoint antigos continuam como aliases enquanto os novos nomes são adotados.
 
@@ -235,6 +238,7 @@ A suíte cobre:
 - a exclusão do perfil no banco e do usuário Auth ocorre em duas etapas e requer reconciliação operacional em caso de falha parcial;
 - contratos, regiões, backups e retenções de operadores precisam de validação antes de produção;
 - a política de privacidade ainda requer identificação do controlador, encarregado e revisão jurídica;
+- a restrição a maiores de 18 anos ainda precisa ser formalizada nos termos e no processo operacional antes de produção;
 - pagamentos, equipes multi-profissionais e papéis administrativos não estão implementados;
 - testes com Supabase/Resend reais, atualização offline do PWA e entrega do e-mail permanecem cenários de staging.
 
@@ -244,4 +248,4 @@ A suíte cobre:
 2. Concluir revisão jurídica e governança LGPD operacional.
 3. Instrumentar métricas mínimas sem conteúdo terapêutico.
 4. Executar o piloto de precificação com profissionais.
-5. Implementar observabilidade, reconciliação de exclusão e testes E2E.
+5. Implementar observabilidade e testes E2E dos fluxos críticos.

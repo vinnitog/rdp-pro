@@ -7,7 +7,10 @@ const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const patient = read("paciente.html");
 const professional = read("psicologo.html");
+const professionalAlias = read("therapist.html");
 const appSource = read("js/app.js");
+const appCss = read("css/app.css");
+const therapistCss = read("css/therapist.css");
 
 function attributes(source) {
   return Object.fromEntries(
@@ -150,17 +153,117 @@ function testSwitchAuthState() {
   assert.equal(signup.getAttribute("aria-hidden"), "false");
 }
 
+function testShowScreenState() {
+  const ids = ["screen-patient-auth", "screen-onboarding", "screen-invalid-token", "screen-no-session", "screen-app"];
+  const screens = new Map(ids.map((id) => [id, createElement()]));
+  const start = appSource.indexOf("function showScreen(id)");
+  const end = appSource.indexOf("function isBackendSetupError", start);
+  assert.ok(start >= 0 && end > start, "patient screen switch should be executable");
+  const context = {
+    document: {
+      querySelectorAll: (selector) => selector === ".screen" ? [...screens.values()] : [],
+      getElementById: (id) => screens.get(id),
+    },
+  };
+  vm.runInNewContext(appSource.slice(start, end), context, { filename: "show-screen.js" });
+  for (const id of ids) {
+    context.showScreen(id);
+    const active = [...screens.entries()].filter(([, screen]) => screen.classList.contains("active"));
+    assert.deepEqual(active.map(([activeId]) => activeId), [id], `${id}: exactly one patient screen must be active`);
+  }
+}
+
+function assertOneMainPerPatientState() {
+  const screenStarts = [...patient.matchAll(/<div\b[^>]*class="screen"[^>]*id="([^"]+)"[^>]*>/gi)]
+    .map((match) => ({ id: match[1], index: match.index, opening: match[0] }));
+  assert.deepEqual(
+    screenStarts.map(({ id }) => id),
+    ["screen-patient-auth", "screen-onboarding", "screen-invalid-token", "screen-no-session", "screen-app"]
+  );
+  const toastStart = patient.indexOf('<div class="toast"');
+  screenStarts.forEach((screen, index) => {
+    const end = screenStarts[index + 1]?.index ?? toastStart;
+    const chunk = patient.slice(screen.index, end);
+    const mainCount = (screen.opening.match(/\brole="main"/i) ? 1 : 0)
+      + [...chunk.matchAll(/<main\b/gi)].length;
+    assert.equal(mainCount, 1, `${screen.id}: the visible state must expose exactly one main landmark`);
+  });
+}
+
+function parseVariables(block) {
+  return Object.fromEntries(
+    [...block.matchAll(/--([\w-]+)\s*:\s*(#[0-9a-f]{6})/gi)]
+      .map((match) => [match[1], match[2]])
+  );
+}
+
+function luminance(hex) {
+  const channels = [1, 3, 5].map((start) => parseInt(hex.slice(start, start + 2), 16) / 255)
+    .map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrast(foreground, background) {
+  const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+  return (values[0] + 0.05) / (values[1] + 0.05);
+}
+
+function assertThemeContrast(file, css, tokens) {
+  const lightBlock = css.match(/:root\s*\{([^}]+)\}/)?.[1];
+  const darkBlock = css.match(/\[data-theme="dark"\]\s*\{([^}]+)\}/)?.[1];
+  assert.ok(lightBlock && darkBlock, `${file}: light and dark theme variables should exist`);
+  for (const [theme, vars] of [["light", parseVariables(lightBlock)], ["dark", parseVariables(darkBlock)]]) {
+    for (const token of tokens) {
+      assert.ok(vars[token], `${file}: ${theme} --${token} should exist`);
+      const ratio = contrast(vars[token], vars.surface);
+      assert.ok(ratio >= 4.5, `${file}: ${theme} --${token} contrast is ${ratio.toFixed(2)}:1; expected >= 4.5:1`);
+    }
+  }
+}
+
 for (const [file, html] of [["paciente.html", patient], ["psicologo.html", professional]]) {
   assertUniqueIds(file, html);
   assertNamedControls(file, html);
 }
 
 assert.match(patient, /<fieldset\b[^>]*datetime-field[^>]*>[\s\S]*?<legend>[\s\S]*?Data \/ Hora[\s\S]*?<\/legend>[\s\S]*?type="date"[\s\S]*?type="time"[\s\S]*?<\/fieldset>/i);
+for (const screenId of ["screen-patient-auth", "screen-onboarding", "screen-invalid-token", "screen-no-session"]) {
+  assert.match(
+    patient,
+    new RegExp(`<div[^>]*id="${screenId}"[^>]*role="main"[^>]*tabindex="-1"`),
+    `paciente.html: ${screenId} should expose a focusable main landmark while active`
+  );
+}
+assert.match(
+  patient,
+  /id="screen-invalid-token"[^>]*role="main"[\s\S]*?<div class="screen-card"[^>]*role="alert"[^>]*aria-live="assertive"/,
+  "paciente.html: invalid invite should keep its assertive announcement inside the main landmark"
+);
+assert.match(patient, /<main id="main-content" tabindex="-1">/, "paciente.html: the authenticated app should expose its main landmark");
+assert.doesNotMatch(
+  patient,
+  /id="screen-app"[^>]*role="main"/,
+  "paciente.html: screen-app should not duplicate the nested main landmark"
+);
 assertFormContract("paciente.html", patient, ["App.submitPatientLogin()", "App.submitPatientSignup()", "App.submitOnboarding()", "App.saveRecord()"]);
 assertFormContract("psicologo.html", professional, ["Therapist.signIn()", "Therapist.signUp()", "Therapist.createPatient()", "Therapist.saveSettings()"]);
 assertTabContract("paciente.html", patient, "tab", "page-");
 assertTabContract("psicologo.html", professional, "auth-tab", "auth-");
 testShowTabState();
 testSwitchAuthState();
+testShowScreenState();
+assertOneMainPerPatientState();
+
+assertThemeContrast("css/app.css", appCss, ["text-subtle", "placeholder"]);
+assertThemeContrast("css/therapist.css", therapistCss, ["text-subtle"]);
+
+assert.match(patient, /id="toast"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
+assert.match(patient, /id="patient-auth-message"[^>]*aria-live="polite"[^>]*aria-atomic="true"/);
+for (const [file, html] of [["psicologo.html", professional], ["therapist.html", professionalAlias]]) {
+  assert.match(html, /id="t-toast"[^>]*role="status"[^>]*aria-live="polite"[^>]*aria-atomic="true"/, `${file}: toast should be announced`);
+  for (const id of ["auth-error", "signup-error"]) {
+    assert.match(html, new RegExp(`id="${id}"[^>]*aria-live="polite"[^>]*aria-atomic="true"`), `${file}: ${id} should be announced`);
+  }
+}
 
 console.log("Accessibility regression tests passed");

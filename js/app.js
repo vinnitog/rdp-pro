@@ -10,6 +10,11 @@ const App = (() => {
     pendingInviteToken: null,
   };
 
+  function clearPendingInvite() {
+    state.pendingInviteToken = null;
+    DB.Patient.clearPendingInvite();
+  }
+
   // ─── INIT ──────────────────────────────────────────────────────────────────
   async function init() {
     const params = new URLSearchParams(location.search);
@@ -26,6 +31,11 @@ const App = (() => {
         state.pendingInviteToken = urlToken;
         DB.Patient.savePendingInvite(urlToken);
         state.session = await DB.Patient.resolveToken(urlToken);
+      } else {
+        state.pendingInviteToken = DB.Patient.getPendingInvite();
+        if (state.pendingInviteToken && !DB.Patient.get()) {
+          state.session = await DB.Patient.resolveToken(state.pendingInviteToken);
+        }
       }
 
       const authSession = await DB.Patient.getAuthSession();
@@ -35,12 +45,16 @@ const App = (() => {
           pendingToken,
           state.session?.patient_name || null
         );
+        state.pendingInviteToken = null;
       } else if (authSession) {
         state.session = await DB.Patient.resolveAuthSession();
       } else {
         state.session = DB.Patient.get();
       }
     } catch (e) {
+      if (e?.code === "INVITE_INVALID") {
+        clearPendingInvite();
+      }
       showPatientStartupError(e);
       return;
     }
@@ -114,6 +128,13 @@ const App = (() => {
       );
       return;
     }
+    if (e?.code !== "INVITE_INVALID") {
+      showInvalidToken(
+        "Não foi possível validar o convite",
+        "Verifique sua conexão e recarregue esta página. O convite foi mantido neste dispositivo para uma nova tentativa."
+      );
+      return;
+    }
     showInvalidToken(
       "Link inválido",
       "Este link de convite não é válido ou já expirou.<br>Solicite um novo link ao seu psicólogo(a)."
@@ -141,13 +162,19 @@ const App = (() => {
       DB.Patient.getPendingInvite() ||
       state.session?.invite_token;
 
-    if (pendingToken) {
-      state.session = await DB.Patient.claimInvite(
-        pendingToken,
-        state.session?.patient_name || document.getElementById("patient-signup-name")?.value.trim() || null
-      );
-    } else {
-      state.session = await DB.Patient.resolveAuthSession();
+    try {
+      if (pendingToken) {
+        state.session = await DB.Patient.claimInvite(
+          pendingToken,
+          state.session?.patient_name || document.getElementById("patient-signup-name")?.value.trim() || null
+        );
+        state.pendingInviteToken = null;
+      } else {
+        state.session = await DB.Patient.resolveAuthSession();
+      }
+    } catch (e) {
+      if (e?.code === "INVITE_INVALID") clearPendingInvite();
+      throw e;
     }
 
     if (!state.session) {
@@ -228,6 +255,8 @@ const App = (() => {
   function showPatientAuthMessage(msg, type = "error") {
     const el = document.getElementById("patient-auth-message");
     if (!el) return;
+    el.setAttribute("role", type === "error" ? "alert" : "status");
+    el.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
     el.textContent = msg;
     el.className = `patient-auth-message ${type}`;
     el.style.display = "block";
@@ -238,6 +267,7 @@ const App = (() => {
     if (!btn) return;
     btn.disabled = loading;
     btn.classList.toggle("btn-loading", loading);
+    btn.setAttribute("aria-busy", String(loading));
   }
 
   // ─── ONBOARDING ───────────────────────────────────────────────────────────
@@ -413,11 +443,16 @@ const App = (() => {
       return;
     }
 
-    if (state.editingId) {
-      DB.Records.update(state.editingId, data);
-      state.editingId = null;
-    } else {
-      DB.Records.add(data);
+    try {
+      if (state.editingId) {
+        DB.Records.update(state.editingId, data);
+        state.editingId = null;
+      } else {
+        DB.Records.add(data);
+      }
+    } catch (e) {
+      showToast(e.message || "Não foi possível salvar o registro");
+      return;
     }
 
     state.records = DB.Records.getAll();

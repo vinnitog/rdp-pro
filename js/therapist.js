@@ -181,7 +181,7 @@ const Therapist = (() => {
       const lastSeen = p.last_seen_at
         ? new Date(p.last_seen_at).toLocaleDateString("pt-BR")
         : "Nunca acessou";
-      const isAwaitingOnboarding = !p.user_id && !p.full_name && !p.last_seen_at && recordCount === 0;
+      const isAwaitingOnboarding = !p.user_id && !p.last_seen_at && recordCount === 0;
       const statusButton = isAwaitingOnboarding
         ? `<button class="t-btn t-btn-sm t-btn-danger" onclick="Therapist.deleteInvite('${p.id}')">Deletar convite</button>`
         : `<button class="t-btn t-btn-sm t-btn-danger" onclick="Therapist.togglePatient('${p.id}', ${!p.active})">
@@ -226,8 +226,47 @@ const Therapist = (() => {
     }
   }
 
-  function copyInvite(url) {
-    navigator.clipboard.writeText(url).then(() => showToast("Link copiado!"));
+  function selectLatestInvite() {
+    const display = document.getElementById("invite-url-display");
+    if (!display?.textContent) return false;
+    const selection = window.getSelection?.();
+    if (!selection || typeof document.createRange !== "function") return false;
+    try {
+      display.focus?.();
+      const range = document.createRange();
+      range.selectNodeContents(display);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      return selection.toString().length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  async function copyInvite(url, showSuccess = true) {
+    if (!url || !navigator.clipboard?.writeText) {
+      const selected = selectLatestInvite();
+      if (showSuccess) {
+        showToast(selected ? "Cópia bloqueada. O link foi selecionado para cópia manual." : "Não foi possível copiar. Selecione o link manualmente.");
+      }
+      return false;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      if (showSuccess) showToast("Link copiado!");
+      return true;
+    } catch {
+      const selected = selectLatestInvite();
+      if (showSuccess) {
+        showToast(selected ? "Cópia bloqueada. O link foi selecionado para cópia manual." : "Não foi possível copiar. Selecione o link manualmente.");
+      }
+      return false;
+    }
+  }
+
+  function copyLatestInvite() {
+    const url = document.getElementById("invite-url-display")?.textContent.trim();
+    return copyInvite(url);
   }
 
   async function regenerateLatestInvite() {
@@ -242,11 +281,9 @@ const Therapist = (() => {
       latestInvitePatientId = patient.id;
       document.getElementById("invite-url-display").textContent = inviteUrl;
       document.getElementById("invite-result").style.display = "block";
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(inviteUrl).catch(() => {});
-      }
+      const copied = await copyInvite(inviteUrl, false);
       await renderPatients();
-      showToast("Novo link gerado!");
+      showToast(copied ? "Novo link gerado e copiado!" : "Novo link gerado. O endereço foi selecionado para cópia manual.");
     } catch (e) {
       showToast("Erro: " + e.message);
     }
@@ -361,6 +398,8 @@ const Therapist = (() => {
   function showError(id, msg, type = "error") {
     const el = document.getElementById(id);
     if (!el) return;
+    el.setAttribute("role", type === "error" ? "alert" : "status");
+    el.setAttribute("aria-live", type === "error" ? "assertive" : "polite");
     el.textContent = msg;
     el.className = `t-msg t-msg-${type}`;
     el.style.display = "block";
@@ -371,6 +410,7 @@ const Therapist = (() => {
     if (!btn) return;
     btn.disabled = loading;
     btn.style.opacity = loading ? "0.6" : "1";
+    btn.setAttribute("aria-busy", String(loading));
   }
 
   function showToast(msg) {
@@ -383,7 +423,7 @@ const Therapist = (() => {
 
   return {
     init, signIn, signUp, signOut,
-    createPatient, copyInvite, regenerateLatestInvite, regenerateInvite, deleteInvite, togglePatient,
+    createPatient, copyInvite, copyLatestInvite, regenerateLatestInvite, regenerateInvite, deleteInvite, togglePatient,
     viewRecords, showSettings, saveSettings,
     showView, loadDashboard, filterPatients,
   };

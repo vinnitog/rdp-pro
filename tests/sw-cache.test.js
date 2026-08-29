@@ -9,7 +9,7 @@ const cacheMatch = sw.match(/const CACHE_NAME = 'rdp-pro-v(\d+)\.(\d+)'/);
 assert.ok(cacheMatch, "sw.js: CACHE_NAME should use rdp-pro-v<major>.<minor> format");
 const major = Number(cacheMatch[1]);
 const minor = Number(cacheMatch[2]);
-assert.deepEqual([major, minor], [1, 21], "sw.js: CACHE_NAME should match the reviewed rdp-pro-v1.21 release");
+assert.deepEqual([major, minor], [1, 22], "sw.js: CACHE_NAME should match the reviewed rdp-pro-v1.22 release");
 
 for (const asset of [
   "./index.html",

@@ -28,8 +28,8 @@
 
   --text:        #252520;
   --text-muted:  #6b7060;
-  --text-subtle: #9a9890;
-  --placeholder: #b0aea6;
+  --text-subtle: #64675e;
+  --placeholder: #686a61;
 
   --border:      #d4d0c4;
   --border-soft: #e4e1d8;
@@ -68,8 +68,8 @@
 
   --text:        #e8e6de;
   --text-muted:  #9a9e90;
-  --text-subtle: #636660;
-  --placeholder: #555850;
+  --text-subtle: #a2a697;
+  --placeholder: #9ea294;
 
   --border:      #363930;
   --border-soft: #2e3128;
@@ -100,6 +100,22 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* [UI] Navegação por teclado: aparece apenas ao receber foco. */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 500;
+  transform: translateY(-160%);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+}
+.skip-link:focus { transform: translateY(0); }
 
 /* [UI] Superfícies nativas alinhadas à identidade do produto. */
 ::selection { background: var(--accent-light); color: var(--text); }
@@ -1026,10 +1042,26 @@ header {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  /* [UI] Estados permanecem visíveis; apenas deslocamentos e giros são removidos. */
+  html { scroll-behavior: auto; }
+  .screen.active,
+  .page.active,
+  .locked-banner,
+  .history-detail,
+  .btn-save.saved,
+  .btn-loading::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
   }
+  body,
+  .skip-link,
+  .toast,
+  .tab,
+  .field-card,
+  .history-item,
+  .history-summary,
+  .history-chevron,
+  button,
+  input,
+  textarea { transition-duration: 0.01ms !important; }
 }

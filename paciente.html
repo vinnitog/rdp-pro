@@ -17,7 +17,7 @@
 <body>
 
 <!-- AUTENTICACAO DO PACIENTE -->
-<div class="screen" id="screen-patient-auth">
+<div class="screen" id="screen-patient-auth" role="main" tabindex="-1">
   <div class="screen-center">
     <div class="screen-card">
       <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 7 2.65A4 4 0 0 0 19 17v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-7-2.65A3.99 3.99 0 0 0 9 3Z"/><path d="M12 4v16"/></svg>
@@ -51,13 +51,13 @@
         </form>
       </div>
 
-      <div class="patient-auth-message" id="patient-auth-message"></div>
+      <div class="patient-auth-message" id="patient-auth-message" aria-live="polite" aria-atomic="true"></div>
     </div>
   </div>
 </div>
 
 <!-- ─── ONBOARDING ────────────────────────────────────────────────────────── -->
-<div class="screen" id="screen-onboarding">
+<div class="screen" id="screen-onboarding" role="main" tabindex="-1">
   <div class="screen-center">
     <form class="screen-card" onsubmit="event.preventDefault();App.submitOnboarding()">
       <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 7 2.65A4 4 0 0 0 19 17v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-7-2.65A3.99 3.99 0 0 0 9 3Z"/><path d="M12 4v16"/></svg>
@@ -96,9 +96,9 @@
 </div>
 
 <!-- ─── TOKEN INVÁLIDO ────────────────────────────────────────────────────── -->
-<div class="screen" id="screen-invalid-token">
+<div class="screen" id="screen-invalid-token" role="main" tabindex="-1">
   <div class="screen-center">
-    <div class="screen-card">
+    <div class="screen-card" role="alert" aria-live="assertive" aria-atomic="true">
       <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
       <h2 id="invalid-token-title">Link inválido</h2>
       <p id="invalid-token-copy">Este link de convite não é válido ou já expirou.<br>Solicite um novo link ao seu psicólogo(a).</p>
@@ -107,7 +107,7 @@
 </div>
 
 <!-- ─── SEM SESSÃO ────────────────────────────────────────────────────────── -->
-<div class="screen" id="screen-no-session">
+<div class="screen" id="screen-no-session" role="main" tabindex="-1">
   <div class="screen-center">
     <div class="screen-card">
       <svg class="logo-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3a4 4 0 0 0-4 4v1a4 4 0 0 0 0 8v1a4 4 0 0 0 7 2.65A4 4 0 0 0 19 17v-1a4 4 0 0 0 0-8V7a4 4 0 0 0-7-2.65A3.99 3.99 0 0 0 9 3Z"/><path d="M12 4v16"/></svg>
@@ -120,6 +120,8 @@
 
 <!-- ─── APP PRINCIPAL ─────────────────────────────────────────────────────── -->
 <div class="screen" id="screen-app">
+
+  <a class="skip-link" href="#main-content">Pular para o conteúdo principal</a>
 
   <header>
     <div class="header-left">
@@ -139,6 +141,8 @@
     <button type="button" class="tab" aria-pressed="false" aria-controls="page-insights" onclick="App.showTab('insights',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg> Insights</span></button>
     <button type="button" class="tab" aria-pressed="false" aria-controls="page-privacidade" onclick="App.showTab('privacidade',this)"><span class="icon-label"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Privacidade</span></button>
   </nav>
+
+  <main id="main-content" tabindex="-1">
 
   <!-- FORMULÁRIO -->
   <div class="page active" id="page-formulario" aria-hidden="false">
@@ -266,9 +270,11 @@
     </div>
   </div>
 
+  </main>
+
 </div><!-- /screen-app -->
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>

@@ -176,7 +176,10 @@ assert.match(dbJs, /generatePatientInvite/, "js/db.js: therapist should be able 
 assert.match(dbJs, /deletePatientInvite/, "js/db.js: therapist should be able to hard-delete unused invites");
 assert.match(therapistJs, /Gerar novo link/, "js/therapist.js: patient cards should generate a fresh invite link");
 assert.match(therapistJs, /Deletar convite/, "js/therapist.js: unused onboarding invites should expose delete action");
-assert.doesNotMatch(therapistJs, />Copiar link</, "js/therapist.js: patient cards should not show copy-link action");
+assert.match(therapistJs, /copyLatestInvite/, "js/therapist.js: the latest invitation should expose a copy action");
+for (const [file, html] of [["psicologo.html", therapistHtml], ["therapist.html", therapistAliasHtml]]) {
+  assert.match(html, /Therapist\.copyLatestInvite\(\)[\s\S]*?Copiar link/, `${file}: invitation result should expose a copy-link button`);
+}
 
 // bootApp must call fetchAndMerge so remote records are pulled on login
 assert.match(

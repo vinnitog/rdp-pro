@@ -12,6 +12,7 @@ const professionalAlias = read("therapist.html");
 const sw = read("sw.js");
 const readme = read("README.md");
 const context = read("context.md");
+const projectContext = read("PROJECT_CONTEXT.md");
 const gitignore = read(".gitignore");
 const pricing = read("docs/pricing-strategy.md");
 
@@ -34,7 +35,7 @@ assert.equal(new Set(cachebusters).size, 1, "patient and professional aliases sh
 
 const cacheVersion = sw.match(/CACHE_NAME\s*=\s*['"]rdp-pro-v(\d+)\.(\d+)['"]/)?.slice(1).map(Number);
 assert.ok(cacheVersion, "service worker cache should be versioned");
-assert.deepEqual(cacheVersion, [1, 21], "service worker cache should match the reviewed v1.21 release");
+assert.deepEqual(cacheVersion, [1, 22], "service worker cache should match the reviewed v1.22 release");
 for (const asset of [
   "./index.html", "./paciente.html", "./psicologo.html", "./therapist.html",
   "./css/app.css", "./css/therapist.css",
@@ -50,7 +51,7 @@ function collectFiles(directory) {
 }
 
 const scannedFiles = [
-  ...["README.md", "context.md", "package.json", "manifest.json", "sw.js", "index.html", "paciente.html", "psicologo.html", "therapist.html"].map((file) => path.join(root, file)),
+  ...["README.md", "context.md", "PROJECT_CONTEXT.md", "package.json", "manifest.json", "sw.js", "index.html", "paciente.html", "psicologo.html", "therapist.html"].map((file) => path.join(root, file)),
   ...collectFiles(path.join(root, "css")),
   ...collectFiles(path.join(root, "js")),
   ...collectFiles(path.join(root, "supabase")),
@@ -79,7 +80,7 @@ for (const match of scanned.matchAll(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z
   }
 }
 
-const publicDocs = `${readme}\n${context}`;
+const publicDocs = `${readme}\n${context}\n${projectContext}`;
 assert.doesNotMatch(publicDocs, /https:\/\/[a-z0-9]{20}\.supabase\.co/i, "public docs should not expose a concrete Supabase project URL");
 assert.doesNotMatch(publicDocs, /(?:project-ref|Projeto Supabase:)\s*(?:`|--project-ref\s+)?[a-z0-9]{20}(?:`|\b)/i, "public docs should not expose a concrete Supabase project ref");
 assert.doesNotMatch(publicDocs, /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i, "public docs should not contain a personal email address");
@@ -103,6 +104,7 @@ for (const localFile of [
 const documentationFiles = [
   path.join(root, "README.md"),
   path.join(root, "context.md"),
+  path.join(root, "PROJECT_CONTEXT.md"),
   ...collectFiles(path.join(root, "docs")).filter((file) => file.endsWith(".md")),
   ...collectFiles(path.join(root, ".lgpd")).filter((file) => file.endsWith(".md")),
 ];

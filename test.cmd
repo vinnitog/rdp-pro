@@ -3,12 +3,15 @@ setlocal
 cd /d "%~dp0"
 
 node tests\patient-auth-regression.test.js || exit /b 1
+node tests\resilience-regression.test.js || exit /b 1
 node tests\data-rights-regression.test.js || exit /b 1
+node tests\invite-ux-regression.test.js || exit /b 1
 node tests\sql-rpc-regression.test.js || exit /b 1
 node tests\edge-security-regression.test.js || exit /b 1
 node tests\html-security-regression.test.js || exit /b 1
 node tests\accessibility-regression.test.js || exit /b 1
 node tests\version-secrets-regression.test.js || exit /b 1
+node tests\compliance-regression.test.js || exit /b 1
 node tests\ui-consistency.test.js || exit /b 1
 node tests\repo-policy.test.js || exit /b 1
 node tests\sw-cache.test.js || exit /b 1
